@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import Header from '@/components/Header'
 import { useRouter } from 'expo-router';
 import { CATEGORIES } from '@/constants';
-import { BANNERS, dummyProducts } from '@/assets/assets';
+import { BANNERS } from '@/assets/assets';
 import { Product } from '@/constants/types';
 import CategoryItem from '@/components/CategoryItem';
 import ProductCard from '@/components/ProductCard';
+import api from '@/constants/api';
 
 const { width } = Dimensions.get('window');
 
@@ -28,8 +29,14 @@ export default function Home() {
         ...CATEGORIES,
     ];
     const fetchProducts = async () => {
-        setProducts(dummyProducts);
-        setLoading(false);
+        try {
+            const { data } = await api.get('/products');
+            setProducts(data.data);
+        } catch (error: any) {
+            console.error("Failed to fetch products:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {

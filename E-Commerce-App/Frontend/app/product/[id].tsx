@@ -6,9 +6,9 @@ import { useWishlist } from '@/context/WishListContext';
 import { Product } from '@/constants/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants';
-import { dummyProducts } from '@/assets/assets';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import api from '@/constants/api';
 
 const { width } = Dimensions.get('window');
 
@@ -26,9 +26,19 @@ export default function ProductDetails() {
     const [activeImageIndex, setActiveImageIndex] = useState(0);
 
     const fetchProduct = async () => {
-        const found: any = dummyProducts.find((product) => product._id === id);
-        setProduct(found ?? null);
-        setLoading(false);
+        try {
+            const { data } = await api.get(`/products/${id}`);
+            setProduct(data.data);
+        } catch (error : any) {
+            console.error('Error fetching product:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to load product',
+                text2: error.response?.data?.message || 'An error occurred while fetching product details.'
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
