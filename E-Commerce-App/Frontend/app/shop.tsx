@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Product } from '@/constants/types'
-import { dummyProducts } from '@/assets/assets';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { ActivityIndicator, FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants';
 import ProductCard from '@/components/ProductCard';
+import api from '@/constants/api';
 
 export default function Shop() {
 
@@ -22,19 +22,24 @@ export default function Shop() {
         } else {
             setLoadingMore(true);
         }
-        
+
         try {
-            const start = (pageNumber - 1) * 10;
-            const end = start + 10;
-            const paginationData = dummyProducts.slice(start, end);
+            const queryParams: any = {
+                page: pageNumber,
+                limit: 10,
+            };
+
+            const { data } = await api.get('/products', {
+                params: queryParams,
+            });
 
             if (pageNumber === 1) {
-                setProducts(paginationData);
+                setProducts(data.data);
             } else {
-                setProducts(prev => [...prev, ...paginationData]);
+                setProducts((prev) => [...prev, ...data.data]);
             }
 
-            setHasMore(end < dummyProducts.length);
+            setHasMore(data.pagination.page < data.pagination.pages);
             setPage(pageNumber);
         } catch (error) {
             console.error('Error fetching products:', error);

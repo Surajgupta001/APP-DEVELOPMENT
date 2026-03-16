@@ -3,16 +3,19 @@ import React, { useEffect, useState } from 'react'
 import { useCart } from '@/context/CartContext'
 import { useRouter } from 'expo-router';
 import { Address } from '@/constants/types';
-import { dummyAddress } from '@/assets/assets';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants';
 import Header from '@/components/Header';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@clerk/expo';
+import api from '@/constants/api';
 
 export default function Checkout() {
 
-    const { cartTotal } = useCart();
+    const { getToken } = useAuth();
+
+    const { cartTotal, clearCart } = useCart();
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
@@ -26,13 +29,31 @@ export default function Checkout() {
     const total = cartTotal + shipping + tax;
 
     const fetchAddress = async () => {
-        const addrList = dummyAddress;
-        if (addrList.length > 0) {
-            // Find default or first
-            const defaultAddr = addrList.find(addr => addr.isDefault) || addrList[0];
-            setSelectedAddress(defaultAddr as Address);
+        try {
+            const token = await getToken();
+            const { data } = await api.get('/addresses', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            const addrList = data.data;
+            if (addrList.length > 0) {
+                // Find default or first
+                const def = addrList.find((a: Address) => {
+                    return a.isDefault || addrList[0];
+                });
+                setSelectedAddress(def);
+            }
+        } catch (error: any) {
+            console.log('Error fetching addresses:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to Load Addresses',
+                text2: error?.response?.data?.message || 'An error occurred while fetching addresses.'
+            })
+        } finally {
+            setPageLoading(false);
         }
-        setPageLoading(false);
     };
 
     const handlePlaceOrderOrder = async () => {
@@ -53,7 +74,39 @@ export default function Checkout() {
             })
         }
         // Cash on delivery
-        router.replace('/orders')
+        setLoading(true);
+        try {
+            const payload = {
+                shippingAddress: selectedAddress,
+                notes: 'Placed via App',
+                paymentMethod: paymentMethod
+            }
+            const token = await getToken();
+            const { data } = await api.post('/orders', payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (data.success) {
+                await clearCart();
+                Toast.show({
+                    type: 'success',
+                    text1: 'Order Placed',
+                    text2: 'Your order has been placed successfully!'
+                });
+                router.replace('/orders');
+            }
+        } catch (error: any) {
+            console.error('Error placing order:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to Place Order',
+                text2: error.response?.data?.message || 'An error occurred while placing your order.'
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {

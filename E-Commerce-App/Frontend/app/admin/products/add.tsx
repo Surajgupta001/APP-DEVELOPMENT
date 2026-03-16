@@ -1,12 +1,17 @@
 import React, { useState } from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View, Switch, Image, ActivityIndicator, Modal, FlatList, TouchableWithoutFeedback, Platform, } from "react-native";
+import { ScrollView, Text, TextInput, TouchableOpacity, View, Switch, Image, ActivityIndicator, Modal, FlatList, TouchableWithoutFeedback } from "react-native";
 import Toast from 'react-native-toast-message';
-import { COLORS } from "@/constants";
+import { COLORS, CATEGORIES } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { CATEGORIES } from "@/constants";
+import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/expo";
+import api from "@/constants/api";
 
 export default function AddProduct() {
+
+    const router = useRouter();
+    const { getToken } = useAuth();
 
     const [submitting, setSubmitting] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -24,7 +29,7 @@ export default function AddProduct() {
     // PICK MULTIPLE IMAGES (MAX 5)
     const pickImages = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsMultipleSelection: true,
             selectionLimit: 5,
             quality: 0.8,
@@ -38,36 +43,95 @@ export default function AddProduct() {
 
     // Add Product
     const handleSubmit = async () => {
-        if (!name || !price || !category || sizes.length < 1) {
+        if (!name || !description || !price || !stock || !category || sizes.trim().length < 1 || images.length < 1) {
             Toast.show({
                 type: 'error',
                 text1: 'Missing Fields',
-                text2: 'Please fill in all required fields'
+                text2: 'Name, description, price, stock, sizes and at least one image are required'
             });
             return;
+        }
+        try {
+            setSubmitting(true);
+            const token = await getToken();
+            const formData = new FormData();
+
+            // Basic Fields
+            const fields = {
+                name,
+                description,
+                price,
+                stock,
+                category,
+                isFeatured: String(isFeatured),
+                sizes
+            };
+
+            Object.entries(fields).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+
+            // Images
+            for (const [i, uri] of images.entries()) {
+                const filename = `image-${i}.jpg`;
+
+                formData.append("images", {
+                    uri,
+                    name: filename,
+                    type: "image/jpeg",
+                } as any);
+            }
+
+            const { data } = await api.post('/products', formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            if (!data?.success) {
+                throw new Error('Upload failed');
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Product Created',
+                text2: 'Your product has been added successfully'
+            });
+            router.push('/admin/products');
+
+        } catch (error: any) {
+            console.error('Error creating product:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: error.response?.data?.messages || 'Something went wrong'
+            });
+        } finally {
+            setSubmitting(false);
         }
     };
 
     return (
-        <ScrollView className="flex-1 bg-surface p-4">
-            <View className="bg-white p-4 rounded-xl shadow-sm mb-20">
+        <ScrollView className="flex-1 p-4 bg-surface">
+            <View className="p-4 mb-20 bg-white shadow-sm rounded-xl">
                 {/* NAME */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Product Name *
                 </Text>
                 <TextInput
-                    className="bg-surface p-3 rounded-lg mb-4 text-primary"
+                    className="p-3 mb-4 rounded-lg bg-surface text-primary"
                     placeholder="e.g. Wireless Headphones"
                     value={name}
                     onChangeText={setName}
                 />
 
                 {/* PRICE */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Price ($) *
                 </Text>
                 <TextInput
-                    className="bg-surface p-3 rounded-lg mb-4 text-primary"
+                    className="p-3 mb-4 rounded-lg bg-surface text-primary"
                     placeholder="0.00"
                     keyboardType="decimal-pad"
                     value={price}
@@ -75,12 +139,12 @@ export default function AddProduct() {
                 />
 
                 {/* CATEGORY */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Category
                 </Text>
                 <TouchableOpacity
                     onPress={() => setModalVisible(true)}
-                    className="bg-surface p-3 rounded-lg mb-4 flex-row justify-between items-center"
+                    className="flex-row items-center justify-between p-3 mb-4 rounded-lg bg-surface"
                 >
                     <Text className="text-primary">{category}</Text>
                     <Ionicons name="chevron-down" size={20} color={COLORS.secondary} />
@@ -89,9 +153,9 @@ export default function AddProduct() {
                 {/* CATEGORY MODAL */}
                 <Modal visible={modalVisible} animationType="slide" transparent>
                     <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-                        <View className="flex-1 justify-end bg-black/50">
+                        <View className="justify-end flex-1 bg-black/50">
                             <View className="bg-white rounded-t-2xl p-4 max-h-[50%]">
-                                <Text className="text-lg font-bold text-center mb-4">
+                                <Text className="mb-4 text-lg font-bold text-center">
                                     Select Category
                                 </Text>
 
@@ -131,11 +195,11 @@ export default function AddProduct() {
                 </Modal>
 
                 {/* STOCK */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Stock Level
                 </Text>
                 <TextInput
-                    className="bg-surface p-3 rounded-lg mb-4 text-primary"
+                    className="p-3 mb-4 rounded-lg bg-surface text-primary"
                     placeholder="0"
                     keyboardType="number-pad"
                     value={stock}
@@ -143,18 +207,18 @@ export default function AddProduct() {
                 />
 
                 {/* SIZES */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Sizes (comma separated)
                 </Text>
                 <TextInput
-                    className="bg-surface p-3 rounded-lg mb-4 text-primary"
+                    className="p-3 mb-4 rounded-lg bg-surface text-primary"
                     placeholder="e.g. S, M, L, XL"
                     value={sizes}
                     onChangeText={setSizes}
                 />
 
                 {/* IMAGE PICKER */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Product Images (max 5)
                 </Text>
 
@@ -165,18 +229,18 @@ export default function AddProduct() {
                                 <Image
                                     key={i}
                                     source={{ uri }}
-                                    className="w-32 h-32 rounded-lg mr-2"
+                                    className="w-32 h-32 mr-2 rounded-lg"
                                 />
                             ))}
                         </ScrollView>
                     ) : (
-                        <View className="w-full h-32 rounded-lg bg-gray-100 justify-center items-center border border-dashed border-gray-300">
+                        <View className="items-center justify-center w-full h-32 bg-gray-100 border border-gray-300 border-dashed rounded-lg">
                             <Ionicons
                                 name="cloud-upload-outline"
                                 size={32}
                                 color={COLORS.secondary}
                             />
-                            <Text className="text-secondary text-xs mt-2">
+                            <Text className="mt-2 text-xs text-secondary">
                                 Tap to upload images
                             </Text>
                         </View>
@@ -184,19 +248,19 @@ export default function AddProduct() {
                 </TouchableOpacity>
 
                 {/* DESCRIPTION */}
-                <Text className="text-secondary text-xs font-bold mb-1 uppercase">
+                <Text className="mb-1 text-xs font-bold uppercase text-secondary">
                     Description
                 </Text>
                 <TextInput
-                    className="bg-surface p-3 rounded-lg mb-6 text-primary h-24"
+                    className="h-24 p-3 mb-6 rounded-lg bg-surface text-primary"
                     multiline
                     value={description}
                     onChangeText={setDescription}
                 />
 
                 {/* FEATURED */}
-                <View className="flex-row justify-between items-center mb-6">
-                    <Text className="text-primary font-bold">Featured Product</Text>
+                <View className="flex-row items-center justify-between mb-6">
+                    <Text className="font-bold text-primary">Featured Product</Text>
                     <Switch
                         value={isFeatured}
                         onValueChange={setIsFeatured}
@@ -214,7 +278,7 @@ export default function AddProduct() {
                     {submitting ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text className="text-white font-bold text-lg">
+                        <Text className="text-lg font-bold text-white">
                             Create Product
                         </Text>
                     )}
