@@ -186,7 +186,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
         const updates = { ...req.body }
 
-        if (req.body.size) {
+        if (req.body.sizes) {
             let sizes = req.body.sizes;
             if (typeof sizes === 'string') {
                 try {

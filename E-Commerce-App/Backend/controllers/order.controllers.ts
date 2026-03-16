@@ -17,7 +17,7 @@ export const getOrders = async (req: Request, res: Response) => {
                 message: 'Orders retrieved successfully',
                 data: orders
             });
-    } catch (error : any) {
+    } catch (error: any) {
         res
             .status(500)
             .json({
@@ -30,7 +30,7 @@ export const getOrders = async (req: Request, res: Response) => {
 
 // Get Single Order
 // Get /api/orders/:id
-export const getOrder = async (req: Request, res: Response) => { 
+export const getOrder = async (req: Request, res: Response) => {
     try {
         const order = await Order.findById(req.params.id).populate('items.product', 'name images');
 
@@ -60,7 +60,7 @@ export const getOrder = async (req: Request, res: Response) => {
                 message: 'Order retrieved successfully',
                 data: order
             });
-    } catch (error : any) {
+    } catch (error: any) {
         res
             .status(500)
             .json({
@@ -128,7 +128,7 @@ export const createOrder = async (req: Request, res: Response) => {
         const shippingCost = 2;
         const tax = 0;
         const totalAmount = subtotal + shippingCost + tax;
-        
+
         const order = await Order.create({
             user: req.user._id,
             items: orderItems,
@@ -156,12 +156,13 @@ export const createOrder = async (req: Request, res: Response) => {
                 message: 'Order created successfully',
                 data: order
             });
-    } catch (error : any) {
+    } catch (error: any) {
+        console.error("Create order error", error);
         res
             .status(500)
             .json({
                 success: false,
-                message: 'Error creating order',
+                message: 'Error creating order: ' + error.message,
                 data: null
             });
     }
@@ -205,7 +206,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
                 data: order
             });
 
-    } catch (error : any) {
+    } catch (error: any) {
         res
             .status(500)
             .json({
@@ -220,7 +221,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 // Get /api/orders/admin/all
 export const getAllOrders = async (req: Request, res: Response) => {
     try {
-        const { page=1, limit=20, status } = req.query;
+        const { page = 1, limit = 20, status } = req.query;
         const query: any = {};
 
         if (status) {
@@ -229,20 +230,20 @@ export const getAllOrders = async (req: Request, res: Response) => {
 
         const orders = await Order.find(query).populate('user', 'name email').populate('items.product', 'name images').sort('-createdAt').skip((Number(page) - 1) * Number(limit));
         const total = await Order.countDocuments(query);
-        
+
         res
             .status(200)
             .json({
                 success: true,
                 message: 'Orders fetched successfully',
-                data : orders,
+                data: orders,
                 pagination: {
                     total,
                     page: Number(page),
                     pages: Math.ceil(total / Number(limit))
                 }
             });
-    } catch (error : any) {
+    } catch (error: any) {
         res
             .status(500)
             .json({

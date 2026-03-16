@@ -19,11 +19,15 @@ const productSchema = new mongoose.Schema<IProduct>({
     images: [{
         type: String,
     }],
-    sizes: [{
+    category: {
         type: String,
         required: true,
-        enum: ['Men', 'Women', 'Kids', 'Shoes', 'bags', 'Others'],
-        default: 'Others',
+        enum: ['Men', 'Women', 'Kids', 'Shoes', 'Bags', 'Other'],
+        default: 'Other',
+    },
+    sizes: [{
+        type: String,
+        trim: true,
     }],
     stock: {
         type: Number,
