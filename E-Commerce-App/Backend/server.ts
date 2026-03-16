@@ -10,6 +10,7 @@ import CartRouter from "./routes/cart.routes.js";
 import OrderRouter from "./routes/order.routes.js";
 import AddressRouter from "./routes/address.routes.js";
 import AdminRouter from "./routes/admin.routes.js";
+import WishlistRouter from "./routes/wishlist.routes.js";
 import { seedProducts } from "./scripts/seedProducts.js";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/cart', CartRouter);
 app.use('/api/orders', OrderRouter);
 app.use('/api/addresses', AddressRouter);
 app.use('/api/admin', AdminRouter);
+app.use('/api/wishlist', WishlistRouter);
 
 const startServer = async () => {
     try {
