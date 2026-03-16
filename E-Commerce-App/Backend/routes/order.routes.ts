@@ -7,6 +7,9 @@ const OrderRouter = express.Router();
 // Get user orders
 OrderRouter.get('/', protect, getOrders);
 
+// Get all orders (admin only) - This route can be implemented later when we have order management features for admins
+OrderRouter.get('/admin/all', protect, authorize('admin'), getAllOrders);
+
 // Get single order
 OrderRouter.get('/:id', protect, getOrder);
 
@@ -15,8 +18,5 @@ OrderRouter.post('/', protect, createOrder);
 
 // Update order status (admin only) - This route can be implemented later when we have order status management
 OrderRouter.put('/:id/status', protect, authorize('admin'), updateOrderStatus);
-
-// Get all orders (admin only) - This route can be implemented later when we have order management features for admins
-OrderRouter.get('/admin', protect, authorize('admin'), getAllOrders);
 
 export default OrderRouter;

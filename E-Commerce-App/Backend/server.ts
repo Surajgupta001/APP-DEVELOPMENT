@@ -10,6 +10,7 @@ import CartRouter from "./routes/cart.routes.js";
 import OrderRouter from "./routes/order.routes.js";
 import AddressRouter from "./routes/address.routes.js";
 import AdminRouter from "./routes/admin.routes.js";
+import { seedProducts } from "./scripts/seedProducts.js";
 
 const app = express();
 
@@ -39,6 +40,9 @@ const startServer = async () => {
     try {
         await connectDB();
         await makeAdmin();
+
+        // Seed dummy prodcuts if no products are present
+        // await seedProducts(process.env.MONGODB_URI as string);
 
         app.listen(port, () => {
             console.log(`Server is running at http://localhost:${port}`);

@@ -90,7 +90,7 @@ export const addToCart = async (req: Request, res: Response) => {
             })
         }
 
-        cart.calculateTotal();
+        cart.totalAmount = cart.items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
         await cart.save();
 
         await cart.populate('items.product', 'name images price stock');
@@ -161,7 +161,7 @@ export const updateCartItem = async (req: Request, res: Response) => {
             item.quantity = quantity;
         }
 
-        cart.calculateTotal();
+        cart.totalAmount = cart.items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
         await cart.save();
         await cart.populate('items.product', 'name images price stock');
 
@@ -180,7 +180,7 @@ export const updateCartItem = async (req: Request, res: Response) => {
                 success: false,
                 message: 'Server error'
             });
-    } { { { } } }
+    }
 };
 
 // Remove Item from Cart
@@ -203,7 +203,7 @@ export const removeCartItem = async (req: Request, res: Response) => {
 
         cart.items = cart.items.filter((item) => item.product.toString() !== req.params.productId || item.size !== size);
 
-        cart.calculateTotal();
+        cart.totalAmount = cart.items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
         await cart.save();
         await cart.populate('items.product', 'name images price stock');
 

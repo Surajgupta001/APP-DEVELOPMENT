@@ -23,7 +23,6 @@ export interface ICart extends Document {
     user: Types.ObjectId;
     items: ICartItem[];
     totalAmount: number;
-    calculateTotal(): number;
     createdAt: Date;
     updatedAt: Date;
 }
