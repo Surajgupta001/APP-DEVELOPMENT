@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Frontend",
-    "slug": "Frontend",
+    "slug": "ecomm-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -23,7 +23,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.surajgupta001sorganization.ecommapp"
     },
     "web": {
       "output": "static",
@@ -48,6 +49,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0c06797d-d11b-405f-afcd-4af2370d729a"
+      }
+    },
+    "owner": "surajgupta001s-organization"
   }
 }
