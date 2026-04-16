@@ -6,7 +6,7 @@ import UserRouter from './routes/user.routes';
 
 const app = express();
 
-app.use(express.json()); // Parse incoming JSON requests bodies and makes then available as req.body in your route handles.
+app.use(express.json()); // Parse incoming JSON requests bodies and makes them available as req.body in your route handlers.
 
 const port = process.env.PORT || 3000;
 
