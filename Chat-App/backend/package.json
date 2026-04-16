@@ -1,12 +1,26 @@
 {
   "name": "backend",
   "module": "index.ts",
-  "type": "module",
-  "private": true,
+  "scripts": {
+    "server": "bun --watch index.ts",
+    "start": "bun index.ts",
+    "build": "bun install"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^25.6.0"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@clerk/express": "^2.1.3",
+    "@types/express": "^5.0.6",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mongoose": "^9.4.1",
+    "socket.io": "^4.8.3"
   }
 }
