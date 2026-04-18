@@ -5,10 +5,6 @@ import { User } from "../models/user.models";
 import { Message } from "../models/messages.models";
 import { Chat } from "../models/chat.models";
 
-interface SocketWithUserId extends Socket {
-    userId: string;
-}
-
 // Store online users in memory : (userId -> socketId)
 export const onlineUsers: Map<string, string> = new Map();
 
@@ -16,8 +12,8 @@ export const initializeSocket = (httpServer: HttpServer) => {
     const allowedOrigin = [
         'http://localhost:8081', // Expo mobile
         'http://localhost:5173', // React web
-        process.env.FRONTEND_URL as string, // Production
-    ];
+        process.env.FRONTEND_URL, // Production
+    ].filter(Boolean) as string[];
 
     const io = new SocketServer(httpServer, {
         cors: {
@@ -50,7 +46,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 return next(new Error("User not found"));
             }
 
-            (socket as SocketWithUserId).userId = user._id.toString();
+            socket.data.userId = user._id.toString();
             next();
         } catch (error: any) {
             next(new Error(error))
@@ -60,17 +56,17 @@ export const initializeSocket = (httpServer: HttpServer) => {
     // This 'connection' event name is special and should be written like This
     // it's the event that is triggered a new client connects to the server
     io.on("connection", (socket) => {
-        const userId = (socket as SocketWithUserId).userId;
+        const userId = socket.data.userId;
 
         // Send list of currently online to the newly connected client
         socket.emit("online-users", {
-            userId: Array.from(onlineUsers.keys())
+            userIds: Array.from(onlineUsers.keys())
         });
 
         // Store user in online users map
         onlineUsers.set(userId, socket.id);
 
-        // Notify others thar this current user is online
+        // Notify others that this current user is online
         socket.broadcast.emit("user-online", {
             userId
         });
@@ -96,8 +92,8 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 })
 
                 if (!chat) {
-                    socket.emit('Socket-error', {
-                        messages: 'Chat not found'
+                    socket.emit('socket-error', {
+                        message: 'Chat not found'
                     });
                     return;
                 }
@@ -108,11 +104,13 @@ export const initializeSocket = (httpServer: HttpServer) => {
                     text: text,
                 });
 
+                await message.save();
+
                 chat.lastMessages = message._id as any;
                 chat.lastMessagesAt = new Date();
                 await chat.save();
 
-                await message.populate('sender', 'name email avatar');
+                await message.populate('sender', 'name avatar');
 
                 // Emit to chat room (for users inside the chat)
                 io.to(`chat:${chatId}`).emit('new-message', message);
@@ -122,9 +120,9 @@ export const initializeSocket = (httpServer: HttpServer) => {
                     io.to(`user_${participantId}`).emit('new-message', message);
                 }
             } catch (error) {
-                socket.emit('soket-error', {
+                socket.emit('socket-error', {
                     message: 'Failed to send message'
-                })
+                });
             }
         });
 
