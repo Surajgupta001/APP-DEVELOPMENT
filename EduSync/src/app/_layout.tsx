@@ -2,9 +2,10 @@ import { Stack } from "expo-router";
 import '../../global.css';
 import { ClerkProvider } from '@clerk/expo'
 import { tokenCache } from '@clerk/expo/token-cache'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as Sentry from '@sentry/react-native';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AppProvider } from "@/contexts/AppProvider";
+import ChatWrapper from "@/components/ChatWrapper";
 
 Sentry.init({
   dsn: 'https://d4b8d747c91465fb4555112d5acb79f5@o4511401321299968.ingest.us.sentry.io/4511409567563776',
@@ -16,10 +17,10 @@ Sentry.init({
   // Enable Logs
   enableLogs: true,
 
-  // Configure Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [Sentry.mobileReplayIntegration()],
+  // Configure Session Replay (Requires @sentry/react-native v8+)
+  // replaysSessionSampleRate: 0.1,
+  // replaysOnErrorSampleRate: 1,
+  // integrations: [Sentry.mobileReplayIntegration()],
 
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
@@ -33,12 +34,19 @@ if (!publishableKey) {
 
 export default function RootLayout() {
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} >
-      <GestureHandlerRootView className="flex-1">
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AppProvider>
+          <ChatWrapper>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+          </ChatWrapper>
+        </AppProvider>
       </GestureHandlerRootView>
     </ClerkProvider>
   );
