@@ -44,7 +44,8 @@
           "project": "edusync",
           "organization": "suraj-gupta-u6"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
