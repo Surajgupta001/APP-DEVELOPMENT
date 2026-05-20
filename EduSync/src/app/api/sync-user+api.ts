@@ -19,6 +19,7 @@ export async function POST(request: Request) {
             id: userId,
             name: name || "Guest",
             image: image,
+            role: "user",
         });
 
         return Response.json({ success: true, userId });
