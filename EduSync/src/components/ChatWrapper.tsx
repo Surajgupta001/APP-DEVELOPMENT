@@ -134,7 +134,7 @@ const ChatWrapper = ({ children }: { children: React.ReactNode }) => {
     // In Expo Go or if stream-chat-expo failed to load, skip chat (native modules not available)
     if (!streamChatModule || !studyBuddyThemeModule) {
         if (isExpoGo) {
-            console.warn(
+            console.log(
                 "[ChatWrapper] Running in Expo Go — chat features disabled. Use a development build for full functionality."
             );
         }
