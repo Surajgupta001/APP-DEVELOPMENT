@@ -1,7 +1,5 @@
-import { studyBuddyTheme } from "@/lib/theme";
 import type { UserResource } from "@clerk/types";
-import { useEffect, useRef } from "react";
-import { Chat, OverlayProvider, useCreateChatClient } from "stream-chat-expo";
+import React, { useEffect, useRef, useState } from "react";
 import { FullScreenLoader } from "./FullScreenLoader";
 
 import * as Sentry from "@sentry/react-native";
@@ -10,6 +8,23 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 
 const STREAM_API_KEY = process.env.EXPO_PUBLIC_STREAM_API_KEY!;
+
+// Check if we're running in Expo Go (no native modules for stream-chat-expo)
+const isExpoGo = Constants.appOwnership === "expo";
+
+// Eagerly try to import stream-chat-expo — but only if NOT in Expo Go
+let streamChatModule: any = null;
+let studyBuddyThemeModule: { studyBuddyTheme: any } | null = null;
+
+if (!isExpoGo) {
+    try {
+        // These are synchronous require calls — they work because Metro bundles them
+        streamChatModule = require("stream-chat-expo");
+        studyBuddyThemeModule = require("@/lib/theme");
+    } catch (error) {
+        console.warn("[ChatWrapper] Failed to load stream-chat-expo:", error);
+    }
+}
 
 const getBaseUrl = () => {
     if (Platform.OS === "web") {
@@ -49,6 +64,9 @@ const syncUserToStream = async (user: UserResource) => {
 
 const ChatClient = ({ children, user }: { children: React.ReactNode; user: UserResource }) => {
     const syncedRef = useRef(false);
+
+    const { Chat, OverlayProvider, useCreateChatClient } = streamChatModule!;
+    const { studyBuddyTheme } = studyBuddyThemeModule!;
 
     useEffect(() => {
         // this if statements is needed so that we don't run this method multiple times. only once!
@@ -112,6 +130,16 @@ const ChatWrapper = ({ children }: { children: React.ReactNode }) => {
 
     // not signed in — render children directly (auth screens)
     if (!user) return <>{children}</>;
+
+    // In Expo Go or if stream-chat-expo failed to load, skip chat (native modules not available)
+    if (!streamChatModule || !studyBuddyThemeModule) {
+        if (isExpoGo) {
+            console.warn(
+                "[ChatWrapper] Running in Expo Go — chat features disabled. Use a development build for full functionality."
+            );
+        }
+        return <>{children}</>;
+    }
 
     return <ChatClient user={user}>{children}</ChatClient>;
 };

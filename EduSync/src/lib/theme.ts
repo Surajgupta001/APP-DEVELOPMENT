@@ -1,6 +1,5 @@
 import { Dimensions } from "react-native";
-import { DeepPartial, Theme } from "stream-chat-expo";
-// import type { DeepPartial, Theme } from "stream-chat-expo";
+import type { DeepPartial, Theme } from "stream-chat-expo";
 
 const { width } = Dimensions.get("window");
 const vw = (percent: number) => (width * percent) / 100;
