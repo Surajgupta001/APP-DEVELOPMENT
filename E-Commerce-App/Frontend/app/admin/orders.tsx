@@ -1,0 +1,206 @@
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View, ActivityIndicator, RefreshControl, Alert, Modal, TouchableWithoutFeedback, FlatList } from "react-native";
+import { COLORS, getStatusColor } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@clerk/expo";
+import api from "@/constants/api";
+
+export default function AdminOrders() {
+
+    const { getToken } = useAuth();
+
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [orders, setOrders] = useState([]);
+
+    // Status Modal State
+    const [statusModalVisible, setStatusModalVisible] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [updating, setUpdating] = useState(false);
+
+    const STATUSES = ["placed", "processing", "shipped", "delivered", "cancelled"];
+
+    const fetchOrders = async () => {
+        try {
+            const token = await getToken();
+            const { data } = await api.get('/orders/admin/all', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (data.success) {
+                setOrders(data.data);
+            }
+        } catch (error: any) {
+            console.error("Failed to fetch orders:", error);
+            Alert.alert('Error', 'Failed to fetch orders.');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchOrders();
+    };
+
+    const openStatusModal = (order: any) => {
+        setSelectedOrder(order);
+        setStatusModalVisible(true);
+    };
+
+    const updateStatus = async (newStatus: string) => {
+        if (!selectedOrder) return;
+
+        try {
+            const token = await getToken();
+            const { data } = await api.put(`/orders/${selectedOrder._id}/status`, {
+                orderStatus: newStatus
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (data.success) {
+                Alert.alert('Success', 'Order status updated successfully');
+                setStatusModalVisible(false);
+                fetchOrders();
+            }
+        } catch (error: any) {
+            console.error("Failed to update order status:", error);
+            Alert.alert('Error', 'Failed to update order status.');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    if (loading && !refreshing) {
+        return (
+            <View className="items-center justify-center flex-1 bg-surface">
+                <ActivityIndicator size="large" color={COLORS.primary} />
+            </View>
+        );
+    }
+
+    return (
+        <View className="flex-1 bg-surface">
+            <ScrollView
+                className="flex-1 p-4"
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
+                {orders.length === 0 ? (
+                    <View className="items-center justify-center flex-1 mt-20">
+                        <Text className="text-secondary">No orders found</Text>
+                    </View>
+                ) : (
+                    orders.map((order: any) => (
+                        <View key={order._id} className="p-4 mb-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                            <View className="flex-row justify-between mb-2">
+                                <Text className="text-sm font-medium text-gray-400 ">Order ID : #{order._id}</Text>
+                                <Text className="text-xs text-secondary">{new Date(order.createdAt).toLocaleDateString()}</Text>
+                            </View>
+
+                            <View className="p-3 mb-3 rounded-lg bg-gray-50">
+                                <Text className="mb-1 text-xs font-bold text-secondary">CUSTOMER</Text>
+                                <Text className="font-medium text-primary">{order.user?.name || 'Unknown User'}</Text>
+                                <Text className="text-xs text-secondary">{order.user?.email || 'No email'}</Text>
+                                {!order.user && <Text className="mt-1 text-xs text-gray-400">ID: {order.user?._id || 'N/A'}</Text>}
+                            </View>
+
+                            <View className="p-3 mb-3 rounded-lg bg-gray-50">
+                                <Text className="mb-1 text-xs font-bold text-secondary">SHIPPING ADDRESS</Text>
+                                <Text className="text-xs text-primary">
+                                    {order.shippingAddress?.street}, {order.shippingAddress?.city}
+                                </Text>
+                                <Text className="text-xs text-primary">
+                                    {order.shippingAddress?.state}, {order.shippingAddress?.zipCode}, {order.shippingAddress?.country}
+                                </Text>
+                            </View>
+
+                            <View className="mb-3">
+                                <Text className="mb-2 text-xs font-bold text-secondary">ITEMS</Text>
+                                {order.items.map((item: any, itemIndex: number) => (
+                                    <View key={`${order._id}-${item._id ?? item.name}-${itemIndex}`} className="flex-row justify-between mb-1">
+                                        <Text className="flex-1 text-xs text-secondary">
+                                            {item.quantity}x {item.product?.name || item.name}
+                                            {(item.size) && (
+                                                <Text className="text-gray-400">
+                                                    {" "}({item.size || '-'})
+                                                </Text>
+                                            )}
+                                        </Text>
+                                        <Text className="text-xs font-bold text-secondary">
+                                            ${item.price.toFixed(2)}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+
+                            <View className="flex-row items-center justify-between pt-3 mt-2 border-t border-gray-100">
+                                <Text className="text-lg font-bold text-primary">${order.totalAmount.toFixed(2)}</Text>
+
+                                <TouchableOpacity
+                                    onPress={() => openStatusModal(order)}
+                                    className={`flex-row items-center px-4 py-2 rounded-full ${getStatusColor(order.orderStatus)}`}
+                                >
+                                    <Text className="mr-2 text-xs font-bold tracking-wide uppercase">{order.orderStatus}</Text>
+                                    <Ionicons name="pencil" size={12} color="black" style={{ opacity: 0.5 }} />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ))
+                )}
+            </ScrollView>
+
+            {/* STATUS MODAL */}
+            <Modal visible={statusModalVisible} animationType="fade" transparent>
+                <TouchableWithoutFeedback onPress={() => setStatusModalVisible(false)}>
+                    <View className="justify-end flex-1 bg-black/50">
+                        <View className="bg-white rounded-t-2xl p-4 max-h-[60%]">
+                            <View className="flex-row items-center justify-between pb-4 mb-4 border-b border-gray-100">
+                                <Text className="text-lg font-bold text-primary">
+                                    Update Order Status
+                                </Text>
+                                <TouchableOpacity onPress={() => setStatusModalVisible(false)}>
+                                    <Ionicons name="close" size={24} color={COLORS.secondary} />
+                                </TouchableOpacity>
+                            </View>
+
+                            {updating ? (
+                                <View className="py-8">
+                                    <ActivityIndicator size="large" color={COLORS.primary} />
+                                    <Text className="mt-2 text-center text-secondary">Updating status...</Text>
+                                </View>
+                            ) : (
+                                <FlatList
+                                    data={STATUSES}
+                                    keyExtractor={(item) => item}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            className={`p-4 rounded-xl mb-2 flex-row justify-between items-center ${selectedOrder?.orderStatus === item ? "bg-primary/10" : "bg-gray-50"
+                                                }`}
+                                            onPress={() => updateStatus(item)}
+                                        >
+                                            <Text className={`font-medium capitalize ${selectedOrder?.orderStatus === item ? "text-primary font-bold" : "text-secondary"
+                                                }`}>
+                                                {item}
+                                            </Text>
+                                            {selectedOrder?.orderStatus === item && (
+                                                <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                                            )}
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            )}
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+        </View>
+    );
+}
