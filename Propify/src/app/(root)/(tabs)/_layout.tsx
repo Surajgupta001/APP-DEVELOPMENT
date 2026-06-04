@@ -1,6 +1,68 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { useUserStore } from "../../../../store/userStore";
+import { Platform } from "react-native";
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function TabsLayout() {
+function AndroidTabs() {
+    const isAdmin = useUserStore((state) => state.isAdmin);
+
+    return (
+        <Tabs screenOptions={{ headerShown: false }}
+        >
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: 'Home',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name='home' color={color} size={size} />
+                    )
+                }}
+            />
+            <Tabs.Screen
+                name="search"
+                options={{
+                    title: 'Search',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name='search' color={color} size={size} />
+                    )
+                }}
+            />
+            {isAdmin && (
+                <Tabs.Screen
+                    name="create"
+                    options={{
+                        title: 'Add Property',
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name='add-circle' color={color} size={size} />
+                        )
+                    }}
+                />
+            )}
+            <Tabs.Screen
+                name="saved"
+                options={{
+                    title: 'Saved',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name='heart' color={color} size={size} />
+                    )
+                }}
+            />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: 'Profile',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name='person' color={color} size={size} />
+                    )
+                }}
+            />
+        </Tabs>
+    );
+}
+
+function IOSTabs() {
+    const isAdmin = useUserStore((state) => state.isAdmin);
 
     return (
         <NativeTabs>
@@ -20,6 +82,17 @@ export default function TabsLayout() {
                 <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
             </NativeTabs.Trigger>
 
+            {/* Admin-only tab - Create Property */}
+            {isAdmin && (
+                <NativeTabs.Trigger name="create">
+                    <NativeTabs.Trigger.Icon
+                        sf={{ default: 'plus', selected: 'plus.circle.fill' }}
+                        md="add"
+                    />
+                    <NativeTabs.Trigger.Label>Add Property</NativeTabs.Trigger.Label>
+                </NativeTabs.Trigger>
+            )}
+
             <NativeTabs.Trigger name="saved">
                 <NativeTabs.Trigger.Icon
                     sf={{ default: 'heart', selected: 'heart.fill' }}
@@ -37,4 +110,10 @@ export default function TabsLayout() {
             </NativeTabs.Trigger>
         </NativeTabs>
     );
+}
+
+export default function TabsLayout() {
+    return (
+        Platform.OS === 'android' ? <AndroidTabs /> : <IOSTabs />
+    )
 }
