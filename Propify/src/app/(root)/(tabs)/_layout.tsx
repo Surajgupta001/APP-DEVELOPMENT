@@ -8,8 +8,7 @@ function AndroidTabs() {
     const isAdmin = useUserStore((state) => state.isAdmin);
 
     return (
-        <Tabs screenOptions={{ headerShown: false }}
-        >
+        <Tabs screenOptions={{ headerShown: false }}>
             <Tabs.Screen
                 name="index"
                 options={{
@@ -28,17 +27,16 @@ function AndroidTabs() {
                     )
                 }}
             />
-            {isAdmin && (
-                <Tabs.Screen
-                    name="create"
-                    options={{
-                        title: 'Add Property',
-                        tabBarIcon: ({ color, size }) => (
-                            <Ionicons name='add-circle' color={color} size={size} />
-                        )
-                    }}
-                />
-            )}
+            <Tabs.Screen
+                name="create"
+                options={{
+                    title: 'Add Property',
+                    href: isAdmin ? undefined : null,
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name='add-circle' color={color} size={size} />
+                    )
+                }}
+            />
             <Tabs.Screen
                 name="saved"
                 options={{
