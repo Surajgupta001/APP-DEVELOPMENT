@@ -20,7 +20,7 @@ export function useSavedProperty({ propertyId, onUnSave }: Props) {
         const { data } = await authSupabase
             .from("saved_properties")
             .select("*")
-            .eq("user_id", userId)
+            .eq("user_clerk_id", userId)
             .eq("property_id", propertyId)
             .single();
 
@@ -38,7 +38,7 @@ export function useSavedProperty({ propertyId, onUnSave }: Props) {
             await authSupabase
                 .from("saved_properties")
                 .delete()
-                .eq("user_id", userId)
+                .eq("user_clerk_id", userId)
                 .eq("property_id", propertyId);
 
             setIsSaved(false);
@@ -47,7 +47,7 @@ export function useSavedProperty({ propertyId, onUnSave }: Props) {
             await authSupabase
                 .from("saved_properties")
                 .insert({
-                    user_id: userId,
+                    user_clerk_id: userId,
                     property_id: propertyId
                 });
 
