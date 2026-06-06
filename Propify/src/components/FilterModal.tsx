@@ -77,6 +77,14 @@ export default function FilterModal({ visible, onClose }: { visible: boolean, on
                             color="#374151"
                         />
                     </TouchableOpacity>
+                    <Text className="text-base font-bold text-gray-800">
+                        Filters
+                    </Text>
+                    <TouchableOpacity onPress={handleReset} className="p-1">
+                        <Text className="text-sm font-semibold text-blue-600">
+                            Reset
+                        </Text>
+                    </TouchableOpacity>
                 </View>
                 <ScrollView
                     className="flex-1"
