@@ -15,7 +15,7 @@ import ImageViewing from 'react-native-image-viewing';
 
 const { width } = Dimensions.get("window");
 
-const admin_phone = process.env.ADMIN_PHONE!;
+const admin_phone = process.env.EXPO_PUBLIC_ADMIN_PHONE!;
 
 export default function PropertyDetails() {
 
@@ -53,12 +53,20 @@ export default function PropertyDetails() {
         setActiveIndex(index);
     };
 
-    const handleContact = () => {
+    const handleContact = async () => {
+        const phone = admin_phone && admin_phone !== 'undefined' ? admin_phone : '917070031833';
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
         const message = `Hi! I'm interested in the property: ${property?.title}`;
-        const url = `https://wa.me/${admin_phone}?text=${encodeURIComponent(
-            message
-        )}`;
-        Linking.openURL(url);
+        const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+
+        try {
+            await Linking.openURL(url);
+        } catch (error) {
+            Alert.alert(
+                "Unable to open link",
+                "WhatsApp could not be opened. Please verify that WhatsApp or a web browser is installed on your device."
+            );
+        }
     };
 
     const handleMarkSold = async () => {
