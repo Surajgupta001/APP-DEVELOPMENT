@@ -12,6 +12,7 @@ import { useSavedProperty } from '../../../../hooks/useSavedProperty';
 import { formatPrice } from '../../../../lib/utils';
 import WebView from 'react-native-webview';
 import ImageViewing from 'react-native-image-viewing';
+import { useColorScheme } from 'nativewind';
 
 const { width } = Dimensions.get("window");
 
@@ -23,6 +24,9 @@ export default function PropertyDetails() {
     const { userId } = useAuth();
     const router = useRouter();
     const isAdmin = useUserStore((state) => state.isAdmin);
+    
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === 'dark';
 
     const [property, setProperty] = useState<Property | null>(null);
     const [loading, setLoading] = useState(true);
@@ -105,7 +109,7 @@ export default function PropertyDetails() {
 
     if (loading) {
         return (
-            <View className="items-center justify-center flex-1 bg-white">
+            <View className="items-center justify-center flex-1 bg-white dark:bg-[#121212]">
                 <ActivityIndicator size="large" color="#0E4D92" />
             </View>
         );
@@ -113,11 +117,11 @@ export default function PropertyDetails() {
 
     if (!property) {
         return (
-            <View className="items-center justify-center flex-1 bg-white">
-                <Text className="text-gray-500">Property not found</Text>
+            <View className="items-center justify-center flex-1 bg-white dark:bg-[#121212]">
+                <Text className="text-gray-500 dark:text-gray-400">Property not found</Text>
             </View>
         );
-    };
+    }
 
     const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${property.longitude - 0.003
         }%2C${property.latitude - 0.003}%2C${property.longitude + 0.003}%2C${property.latitude + 0.003
@@ -127,7 +131,7 @@ export default function PropertyDetails() {
     const displayDesc = expanded || !isLongDesc ? property.description : `${property.description?.slice(0, 150)}...`;
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-white dark:bg-[#121212]">
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image Carousel */}
                 <View>
@@ -136,7 +140,7 @@ export default function PropertyDetails() {
                     }}>
                         <FlatList
                             data={property.images}
-                            keyExtractor={(_, i) => i.toString()}
+                            keyExtractor={(item, i) => i.toString()}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     onPress={() => setImageViewerVisible(true)}
@@ -181,17 +185,17 @@ export default function PropertyDetails() {
                         <View className="flex-row items-center justify-between px-4 pt-2">
                             <TouchableOpacity
                                 onPress={() => router.back()}
-                                className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                                className="items-center justify-center w-10 h-10 bg-white dark:bg-[#1E1E1E] rounded-full"
                                 style={{
                                     elevation: 3
                                 }}
                             >
-                                <Ionicons name="arrow-back" size={20} color="#111827" />
+                                <Ionicons name="arrow-back" size={20} color={isDark ? "#ffffff" : "#111827"} />
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={toggleSave}
                                 disabled={saveLoading}
-                                className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                                className="items-center justify-center w-10 h-10 bg-white dark:bg-[#1E1E1E] rounded-full"
                                 style={{
                                     elevation: 3
                                 }}
@@ -199,7 +203,7 @@ export default function PropertyDetails() {
                                 <Ionicons
                                     name={isSaved ? "heart" : "heart-outline"}
                                     size={20}
-                                    color={isSaved ? "#EF4444" : "#111827"}
+                                    color={isSaved ? "#EF4444" : (isDark ? "#ffffff" : "#111827")}
                                 />
                             </TouchableOpacity>
                         </View>
@@ -215,35 +219,35 @@ export default function PropertyDetails() {
                 >
                     {/* Badges */}
                     <View className="flex-row flex-wrap gap-2 mb-3">
-                        <View className="px-3 py-1 rounded-full bg-blue-50">
-                            <Text className="text-xs font-semibold text-blue-600 capitalize">
+                        <View className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/20">
+                            <Text className="text-xs font-semibold text-blue-600 dark:text-blue-400 capitalize">
                                 {property.type}
                             </Text>
                         </View>
                         {property.is_featured && (
-                            <View className="px-3 py-1 rounded-full bg-amber-50">
-                                <Text className="text-xs font-semibold text-amber-600">
+                            <View className="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/20">
+                                <Text className="text-xs font-semibold text-amber-600 dark:text-amber-400">
                                     ⭐ Featured
                                 </Text>
                             </View>
                         )}
                         {property.is_sold && (
-                            <View className="px-3 py-1 rounded-full bg-red-50">
-                                <Text className="text-xs font-semibold text-red-500">Sold</Text>
+                            <View className="px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/20">
+                                <Text className="text-xs font-semibold text-red-500 dark:text-red-400">Sold</Text>
                             </View>
                         )}
                     </View>
 
                     {/* Title + Price */}
-                    <Text className="mb-1 text-2xl font-bold text-gray-900">
+                    <Text className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">
                         {property.title}
                     </Text>
-                    <Text className="mb-4 text-xl font-bold text-primary">
+                    <Text className="mb-4 text-xl font-bold text-blue-600 dark:text-blue-400">
                         {formatPrice(property.price)}
                     </Text>
 
                     {/* Specs Row */}
-                    <View className="flex-row justify-between p-4 mb-5 bg-gray-50 rounded-2xl">
+                    <View className="flex-row justify-between p-4 mb-5 bg-gray-50 dark:bg-zinc-800 rounded-2xl">
                         <SpecItem
                             icon="bed-outline"
                             label="Beds"
@@ -263,17 +267,17 @@ export default function PropertyDetails() {
                     </View>
 
                     {/* Description */}
-                    <Text className="mb-2 text-base font-bold text-gray-900">
+                    <Text className="mb-2 text-base font-bold text-gray-900 dark:text-white">
                         Description
                     </Text>
-                    <Text className="mb-1 text-sm leading-6 text-gray-500">
+                    <Text className="mb-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
                         {displayDesc}
                     </Text>
                     {isLongDesc && (
                         <TouchableOpacity
                             onPress={() => setExpanded(!expanded)}
                         >
-                            <Text className="mb-5 text-sm font-medium text-primary">
+                            <Text className="mb-5 text-sm font-medium text-blue-600 dark:text-blue-400">
                                 {expanded ? "Show less" : "Read more"}
                             </Text>
                         </TouchableOpacity>
@@ -282,12 +286,12 @@ export default function PropertyDetails() {
                     <View className="mb-5" />
 
                     {/* Location */}
-                    <Text className="mb-2 text-base font-bold text-gray-900">
+                    <Text className="mb-2 text-base font-bold text-gray-900 dark:text-white">
                         Location
                     </Text>
                     <View className="flex-row items-center gap-2 mb-4">
-                        <Ionicons name="location-outline" size={16} color="#6B7280" />
-                        <Text className="flex-1 text-sm text-gray-500">
+                        <Ionicons name="location-outline" size={16} color={isDark ? "#9CA3AF" : "#6B7280"} />
+                        <Text className="flex-1 text-sm text-gray-500 dark:text-gray-400">
                             {property.address}, {property.city}
                         </Text>
                     </View>
@@ -315,9 +319,9 @@ export default function PropertyDetails() {
                             scrollEnabled={false}
                             pointerEvents="none"
                         />
-                        <View className="absolute flex-row items-center gap-1 px-3 py-1 rounded-full bottom-3 right-3 bg-white/90">
-                            <Ionicons name="expand-outline" size={12} color="#374151" />
-                            <Text className="text-xs font-medium text-gray-600">
+                        <View className="absolute flex-row items-center gap-1 px-3 py-1 rounded-full bottom-3 right-3 bg-white/90 dark:bg-black/90">
+                            <Ionicons name="expand-outline" size={12} color={isDark ? "#ffffff" : "#374151"} />
+                            <Text className="text-xs font-medium text-gray-600 dark:text-gray-300">
                                 Tap to expand
                             </Text>
                         </View>
@@ -340,21 +344,21 @@ export default function PropertyDetails() {
                             {!property.is_sold && (
                                 <TouchableOpacity
                                     onPress={handleMarkSold}
-                                    className="flex-row items-center justify-center flex-1 gap-2 py-4 border bg-amber-50 rounded-2xl border-amber-200"
+                                    className="flex-row items-center justify-center flex-1 gap-2 py-4 border bg-amber-50 dark:bg-amber-950/10 rounded-2xl border-amber-200 dark:border-amber-900/30"
                                 >
                                     <Ionicons
                                         name="checkmark-circle-outline"
                                         size={18}
                                         color="#D97706"
                                     />
-                                    <Text className="font-semibold text-amber-600">
+                                    <Text className="font-semibold text-amber-600 dark:text-amber-400">
                                         Mark Sold
                                     </Text>
                                 </TouchableOpacity>
                             )}
                             <TouchableOpacity
                                 onPress={handleDelete}
-                                className="flex-row items-center justify-center flex-1 gap-2 py-4 border border-red-100 bg-red-50 rounded-2xl"
+                                className="flex-row items-center justify-center flex-1 gap-2 py-4 border border-red-100 dark:border-red-950/20 bg-red-50 dark:bg-red-950/10 rounded-2xl"
                             >
                                 <Ionicons name="trash-outline" size={18} color="#EF4444" />
                                 <Text className="font-semibold text-red-500">Delete</Text>
@@ -382,11 +386,13 @@ interface Props {
 };
 
 function SpecItem({ icon, label, value }: Props) {
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === 'dark';
     return (
         <View className="items-center gap-1">
             <Ionicons name={icon} size={20} color="#0E4D92" />
-            <Text className="text-sm font-bold text-gray-900">{value}</Text>
-            <Text className="text-xs text-gray-400">{label}</Text>
+            <Text className="text-sm font-bold text-gray-900 dark:text-white">{value}</Text>
+            <Text className="text-xs text-gray-400 dark:text-gray-500">{label}</Text>
         </View>
     );
 };

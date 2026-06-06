@@ -7,6 +7,7 @@ import { Property } from "../../../../types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PropertyCard from "@/components/PropertyCard";
 import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 
 interface SavedProperty {
   id: string;
@@ -19,6 +20,9 @@ export default function Saved() {
   const { userId } = useAuth();
   const authSupabase = useSupabase();
   const router = useRouter();
+
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const [saved, setSaved] = useState<SavedProperty[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,23 +49,23 @@ export default function Saved() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-[#121212]">
 
       {/* Header */}
       <View className="px-5 pt-4 pb-3">
-        <Text className="text-2xl font-bold text-gray-900">Saved</Text>
+        <Text className="text-2xl font-bold text-gray-900 dark:text-white">Saved</Text>
         {!loading && (
-          <Text className="mt-1 text-sm text-gray-400">
-            {saved.length} {saved.length === 1 ? "property" : "properties"}
-            Saved
+          <Text className="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            {saved.length} {saved.length === 1 ? "property" : "properties"}{" "}
+            saved
           </Text>
         )}
       </View>
       {loading ?
-        (<View className="items-center flex-1">
+        (<View className="items-center flex-1 justify-center">
           <ActivityIndicator
             size="large"
-            color="#4B5563"
+            color={isDark ? "#fff" : "#4B5563"}
           />
         </View>)
         :
@@ -82,13 +86,13 @@ export default function Saved() {
           )}
           ListEmptyComponent={
             <View className="items-center justify-center flex-1 py-24">
-              <View className="items-center justify-center w-20 h-20 mb-4 rounded-full bg-red-50">
+              <View className="items-center justify-center w-20 h-20 mb-4 rounded-full bg-red-50 dark:bg-red-950/20">
                 <Ionicons name="heart-outline" size={36} color="#EF4444" />
               </View>
-              <Text className="mb-1 text-lg font-bold text-gray-700">
+              <Text className="mb-1 text-lg font-bold text-gray-700 dark:text-gray-200">
                 No saved properties
               </Text>
-              <Text className="px-8 text-sm text-center text-gray-400">
+              <Text className="px-8 text-sm text-center text-gray-400 dark:text-gray-500">
                 Tap the heart icon on any property to save it here
               </Text>
               <TouchableOpacity

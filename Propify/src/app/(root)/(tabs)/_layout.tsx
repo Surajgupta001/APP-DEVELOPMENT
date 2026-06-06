@@ -3,12 +3,23 @@ import { useUserStore } from "../../../../store/userStore";
 import { Platform } from "react-native";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 
 function AndroidTabs() {
     const isAdmin = useUserStore((state) => state.isAdmin);
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === 'dark';
 
     return (
-        <Tabs screenOptions={{ headerShown: false }}>
+        <Tabs screenOptions={{ 
+            headerShown: false,
+            tabBarStyle: {
+                backgroundColor: isDark ? '#1C1C1E' : '#ffffff',
+                borderTopColor: isDark ? '#2C2C2E' : '#E5E7EB',
+            },
+            tabBarActiveTintColor: '#0E4D92',
+            tabBarInactiveTintColor: isDark ? '#9CA3AF' : '#6B7280',
+        }}>
             <Tabs.Screen
                 name="index"
                 options={{

@@ -2,10 +2,14 @@ import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useColorScheme } from "nativewind";
 
 export default function SignInScreen() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const router = useRouter();
+
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,20 +72,21 @@ export default function SignInScreen() {
 
   if (signIn.status === "needs_client_trust") {
     return (
-      <View className="items-center justify-center flex-1 px-6 bg-white">
+      <View className="items-center justify-center flex-1 px-6 bg-white dark:bg-[#121212]">
         <Image
           source={require("../../../assets/images/kribb.png")}
           className="w-32 h-16 mb-8"
+          style={{ tintColor: isDark ? '#ffffff' : undefined }}
           resizeMode="contain"
         />
-        <Text className="mb-2 text-2xl font-bold text-gray-800">
+        <Text className="mb-2 text-2xl font-bold text-gray-800 dark:text-white">
           Verify your account
         </Text>
 
         <TextInput
-          className="w-full px-4 py-3 mb-4 border border-gray-300 rounded-xl"
+          className="w-full px-4 py-3 mb-4 border border-gray-300 dark:border-zinc-800 rounded-xl bg-white dark:bg-[#1E1E1E] text-gray-800 dark:text-white"
           placeholder="Enter verification code"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
           keyboardType="number-pad"
           value={code}
           onChangeText={setCode}
@@ -108,11 +113,11 @@ export default function SignInScreen() {
           onPress={() => signIn.mfa.sendEmailCode()}
           className="py-2 mb-2"
         >
-          <Text className="text-blue-600">I need a new code</Text>
+          <Text className="text-blue-600 dark:text-blue-400">I need a new code</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => signIn.reset()} className="py-2">
-          <Text className="text-blue-600">Start over</Text>
+          <Text className="text-blue-600 dark:text-blue-400">Start over</Text>
         </TouchableOpacity>
       </View>
     );
@@ -121,24 +126,25 @@ export default function SignInScreen() {
   return (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
-      className="bg-white"
+      className="bg-white dark:bg-[#121212]"
       keyboardShouldPersistTaps="handled"
     >
       <View className="justify-center flex-1 px-6 py-12">
         <Image
           source={require("../../../assets/images/kribb.png")}
           className="h-16 mb-8 w-36"
+          style={{ tintColor: isDark ? '#ffffff' : undefined }}
           resizeMode="contain"
         />
-        <Text className="mb-2 text-3xl font-bold text-gray-800">
+        <Text className="mb-2 text-3xl font-bold text-gray-800 dark:text-white">
           Welcome back
         </Text>
-        <Text className="mb-8 text-gray-500">Sign in to your account</Text>
+        <Text className="mb-8 text-gray-500 dark:text-gray-400">Sign in to your account</Text>
 
         <TextInput
-          className="w-full px-4 py-3 mb-4 border border-gray-300 rounded-xl"
+          className="w-full px-4 py-3 mb-4 border border-gray-300 dark:border-zinc-800 rounded-xl bg-white dark:bg-[#1E1E1E] text-gray-800 dark:text-white"
           placeholder="Email address"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -151,9 +157,9 @@ export default function SignInScreen() {
         )}
 
         <TextInput
-          className="w-full px-4 py-3 mb-6 border border-gray-300 rounded-xl"
+          className="w-full px-4 py-3 mb-6 border border-gray-300 dark:border-zinc-800 rounded-xl bg-white dark:bg-[#1E1E1E] text-gray-800 dark:text-white"
           placeholder="Password"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -177,9 +183,9 @@ export default function SignInScreen() {
         </TouchableOpacity>
 
         <View className="flex-row justify-center">
-          <Text className="text-gray-500">Don&apos;t have an account? </Text>
+          <Text className="text-gray-500 dark:text-gray-400">Don&apos;t have an account? </Text>
           <Link href="/sign-up">
-            <Text className="font-semibold text-blue-600">Sign Up</Text>
+            <Text className="font-semibold text-blue-600 dark:text-blue-400">Sign Up</Text>
           </Link>
         </View>
       </View>
