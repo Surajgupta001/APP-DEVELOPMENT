@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Toggle } from '@/components/Toggle';
 import { Counter } from '@/components/Counter';
+import { useColorScheme } from 'nativewind';
 
 const TYPES = ["apartment", "house", "villa", "studio"] as const;
 
@@ -17,14 +18,16 @@ type PropertyType = (typeof TYPES)[number];
 const MIN_PRICE = 1;
 const MAX_PRICE = 999_999_999;
 
-const inputClass = "bg-white border border-gray-200 rounded-2xl px-4 py-3 text-gray-800";
-const labelClass = "text-sm font-semibold text-gray-700 mb-1.5";
+const inputClass = "bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-gray-800 dark:text-white";
+const labelClass = "text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5";
 const sectionClass = "mb-5";
 
 export default function Create() {
 
     const router = useRouter();
     const authSupabase = useSupabase();
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === 'dark';
 
     const [form, setForm] = useState<FormState>(INITIAL_FORM);
 
@@ -65,7 +68,11 @@ export default function Create() {
                 const fileName = `property_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.jpg`;
 
                 const base64 = asset.base64;
-                const buffer = Uint8Array.from(atob(base64!), c => c.charCodeAt(0));
+                if (!base64) {
+                    throw new Error("Base64 image data is missing.");
+                }
+
+                const buffer = decodeBase64ToArrayBuffer(base64);
 
                 const { error } = await authSupabase.storage
                     .from('property-images')
@@ -108,6 +115,7 @@ export default function Create() {
     };
 
     const handleDetectLocation = async () => {
+        setDetectingLocation(true);
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
 
@@ -180,22 +188,27 @@ export default function Create() {
         if (error) {
             console.error("Submission error:", error);
             Alert.alert("Submission Failed", "An error occurred while listing the property. Please try again.");
+            return;
         }
 
         setForm(INITIAL_FORM);
-        Alert.alert("Success", "Your property has been listed successfully!");
-        router.push("/"); // Navigate back to home or listings page
+        Alert.alert("Success", "Your property has been listed successfully!", [
+            {
+                text: "OK",
+                onPress: () => router.push("/")
+            }
+        ]);
     };
 
     return (
-        <SafeAreaView className='flex-1 bg-gray-50'>
+        <SafeAreaView className='flex-1 bg-gray-50 dark:bg-[#121212]'>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className='flex-1'
             >
                 {/* Header */}
                 <View className="flex-row items-center px-5 pt-4 pb-3">
-                    <Text className="flex-1 text-2xl font-bold text-gray-900">Add Property</Text>
+                    <Text className="flex-1 text-2xl font-bold text-gray-900 dark:text-white">Add Property</Text>
                 </View>
                 <ScrollView
                     contentContainerStyle={{
@@ -207,9 +220,9 @@ export default function Create() {
                 >
                     {/* Images */}
                     <View className={sectionClass}>
-                        <Text>
+                        <Text className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
                             Photos{" "}
-                            <Text className="font-normal text-gray-400">(up to 6)</Text>
+                            <Text className="font-normal text-gray-400 dark:text-gray-500">(up to 6)</Text>
                         </Text>
                         <View className='flex-row flex-wrap gap-3'>
                             {form.localImages.map((uri, index) => (
@@ -236,7 +249,7 @@ export default function Create() {
                                 <TouchableOpacity
                                     onPress={handlePickImages}
                                     disabled={uploadingImages}
-                                    className="items-center justify-center w-24 h-24 bg-white border-2 border-gray-300 border-dashed rounded-2xl"
+                                    className="items-center justify-center w-24 h-24 bg-white dark:bg-[#1E1E1E] border-2 border-gray-300 dark:border-zinc-800 border-dashed rounded-2xl"
                                 >
                                     {uploadingImages ? (
                                         <ActivityIndicator size="small" color="#2563EB" />
@@ -245,9 +258,9 @@ export default function Create() {
                                             <Ionicons
                                                 name="camera-outline"
                                                 size={22}
-                                                color="#9CA3AF"
+                                                color={isDark ? "#9CA3AF" : "#9CA3AF"}
                                             />
-                                            <Text className="mt-1 text-xs text-gray-400">Add</Text>
+                                            <Text className="mt-1 text-xs text-gray-400 dark:text-gray-500 font-medium">Add</Text>
                                         </>
                                     )}
                                 </TouchableOpacity>
@@ -260,7 +273,7 @@ export default function Create() {
                         <TextInput
                             className={inputClass}
                             placeholder="e.g. Modern 3BHK in Bandra"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                             value={form.title}
                             onChangeText={(v) => updateForm({ title: v })}
                         />
@@ -270,7 +283,7 @@ export default function Create() {
                         <TextInput
                             className={`${inputClass} h-24`}
                             placeholder="Describe the property..."
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                             value={form.description}
                             onChangeText={(v) => updateForm({ description: v })}
                             multiline
@@ -283,12 +296,12 @@ export default function Create() {
                         <TextInput
                             className={inputClass}
                             placeholder="e.g. 5000000"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                             value={form.price}
                             onChangeText={(v) => updateForm({ price: v })}
                             keyboardType="numeric"
                         />
-                        <Text className="text-xs text-gray-400 mt-1.5 ml-1">
+                        <Text className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 ml-1">
                             Valid range: ₹1 – ₹{MAX_PRICE.toLocaleString("en-IN")}
                         </Text>
                     </View>
@@ -302,11 +315,11 @@ export default function Create() {
                                     onPress={() => updateForm({ type: t })}
                                     className={`px-4 py-2 rounded-full border ${form.type === t
                                         ? "bg-blue-600 border-blue-600"
-                                        : "bg-white border-gray-200"
+                                        : "bg-white dark:bg-[#1E1E1E] border-gray-200 dark:border-zinc-800"
                                         }`}
                                 >
                                     <Text
-                                        className={`text-sm font-semibold capitalize ${form.type === t ? "text-white" : "text-gray-600"
+                                        className={`text-sm font-semibold capitalize ${form.type === t ? "text-white" : "text-gray-600 dark:text-gray-300"
                                             }`}
                                     >
                                         {t}
@@ -334,7 +347,7 @@ export default function Create() {
                         <TextInput
                             className={inputClass}
                             placeholder="e.g. 1200"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                             value={form.areaSqft}
                             onChangeText={(v) => updateForm({ areaSqft: v })}
                             keyboardType="numeric"
@@ -346,7 +359,7 @@ export default function Create() {
                         <TextInput
                             className={inputClass}
                             placeholder="Street address"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                             value={form.address}
                             onChangeText={(v) => updateForm({ address: v })}
                         />
@@ -357,7 +370,7 @@ export default function Create() {
                         <TextInput
                             className={inputClass}
                             placeholder="e.g. Mumbai"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                             value={form.city}
                             onChangeText={(v) => updateForm({ city: v })}
                         />
@@ -369,14 +382,14 @@ export default function Create() {
                             <TouchableOpacity
                                 onPress={handleDetectLocation}
                                 disabled={detectingLocation}
-                                className="flex-row items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full"
+                                className="flex-row items-center gap-1 bg-blue-50 dark:bg-blue-950/20 px-3 py-1.5 rounded-full"
                             >
                                 {detectingLocation ? (
                                     <ActivityIndicator size="small" color="#2563EB" />
                                 ) : (
-                                    <Ionicons name="locate-outline" size={13} color="#2563EB" />
+                                    <Ionicons name="locate-outline" size={13} color={isDark ? "#60A5FA" : "#2563EB"} />
                                 )}
-                                <Text className="text-xs font-semibold text-blue-600">
+                                <Text className="text-xs font-semibold text-blue-600 dark:text-blue-400">
                                     {detectingLocation ? "Detecting..." : "Detect Location"}
                                 </Text>
                             </TouchableOpacity>
@@ -387,7 +400,7 @@ export default function Create() {
                                 <TextInput
                                     className={inputClass}
                                     placeholder="Latitude"
-                                    placeholderTextColor="#9CA3AF"
+                                    placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                                     value={form.latitude}
                                     onChangeText={(v) => updateForm({ latitude: v })}
                                     keyboardType="numeric"
@@ -397,7 +410,7 @@ export default function Create() {
                                 <TextInput
                                     className={inputClass}
                                     placeholder="Longitude"
-                                    placeholderTextColor="#9CA3AF"
+                                    placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                                     value={form.longitude}
                                     onChangeText={(v) => updateForm({ longitude: v })}
                                     keyboardType="numeric"
@@ -441,3 +454,33 @@ export default function Create() {
         </SafeAreaView>
     );
 };
+
+function decodeBase64ToArrayBuffer(base64: string): ArrayBuffer {
+    const binaryString = atobPolyfill(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+function atobPolyfill(input: string): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    const str = String(input).replace(/[=]+$/, '');
+    if (str.length % 4 === 1) {
+        throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
+    }
+    let output = '';
+    for (
+        let bc = 0, bs = 0, buffer, idx = 0;
+        (buffer = str.charAt(idx++));
+        ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer),
+        bc++ % 4)
+            ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+            : 0
+    ) {
+        buffer = chars.indexOf(buffer);
+    }
+    return output;
+}

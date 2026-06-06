@@ -12,16 +12,28 @@ export function Toggle({ label, description, value, onChange }: ToggleProps) {
     return (
         <TouchableOpacity
             onPress={() => onChange(!value)}
-            className={`flex-row justify-between items-center p-4 rounded-2xl border ${value ? "bg-blue-600 border-blue-600" : "bg-white border-gray-200"}`}
+            className={`flex-row justify-between items-center p-4 rounded-2xl border ${
+                value 
+                    ? "bg-blue-600 border-blue-600" 
+                    : "bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
+            }`}
         >
             <View className='flex-1 mr-3'>
-                <Text className={`text-sm font-semibold ${value ? "text-white" : "text-gray-800"}`}>
+                <Text className={`text-sm font-semibold ${value ? "text-white" : "text-gray-800 dark:text-white"}`}>
                     {label}
                 </Text>
-                {description && (<Text className='text-xs text-gray-400 mt-0.5'>{description}</Text>)}
+                {description && (
+                    <Text className={`text-xs mt-0.5 ${value ? "text-blue-100" : "text-gray-400 dark:text-gray-400"}`}>
+                        {description}
+                    </Text>
+                )}
             </View>
             <View
-                className={`w-6 h-6 rounded-full border-2 items-center justify-center ${value ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
+                className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                    value 
+                        ? 'bg-blue-600 border-blue-600' 
+                        : 'bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-600'
+                }`}
             >
                 {value && <Ionicons name="checkmark" size={16} color="white" />}
             </View>
