@@ -1,56 +1,88 @@
-# Welcome to your Expo app 👋
+# MotionFlix 🎬
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+MotionFlix is a premium, high-fidelity movie browsing application built using **React Native**, **Expo**, and **TypeScript**. It demonstrates modern mobile interface design, featuring smooth gesture-driven screen transitions, glassmorphic UI components, dynamic detail drawers, interactive watchlists, search filtering, and trailer playback.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+- **Stunning UI/UX:** Curated, high-contrast dark color palette, clean typography, cards with image preloading, and active feedback states.
+- **Fluid Gestures & Transitions:** Implements advanced transition models powered by `react-native-reanimated` and `react-native-screen-transitions`, including:
+  - Contained scale-zooms for Movie Details and Gallery pages.
+  - Interactive, swipe-to-dismiss bottom sheets for Watchlists and Share options.
+  - Custom horizontal-inverted slide-drawers for Genre Filters.
+- **Full-featured Search:** Instant search functionality filtering movies by text matching, featuring historical search query chips.
+- **Queue/Watchlist Management:** Custom watchlist grouping ("Tonight", "Weekend Queue", "Flight Downloads") with interactive toggle status.
+- **Multi-Platform Support:** Fully compiled and optimized to run on **iOS**, **Android**, and the **Web** as a Single Page Application (SPA).
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🚀 Getting Started
 
-In the output, you'll find options to open the app in a
+### Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Node.js** (v18+)
+- **Bun** (Recommended) or **npm**
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Installation
 
-## Get a fresh project
-
-When you're ready, run:
+Install the package dependencies using **Bun**:
 
 ```bash
-npm run reset-project
+bun install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Running the Application
 
-### Other setup steps
+Start the development server for your target platform:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+#### 🌐 Web (SPA)
+```bash
+bun run web
+```
 
-## Learn more
+#### 🤖 Android
+```bash
+bun run android
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+#### 🍏 iOS
+```bash
+bun run ios
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+#### 🔧 Expo Dev Server (with clearing cache)
+```bash
+bun start --clear
+```
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 📂 Project Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```text
+motion-flix/
+├── assets/             # Media resources, icons, and adaptive splash screens
+├── src/
+│   ├── app/            # Expo Router file-based pages (index, movie, search, gallery, sheets)
+│   ├── components/     # High-fidelity shared UI elements (movie-ui, animated-icons)
+│   ├── constants/      # Theming constants and style tokens
+│   ├── data/           # Mock data models for movies, cast members, and playlists
+│   ├── navigation/     # Transition Stack configurations
+│   ├── transitions/    # Reanimated custom gesture and style interpolator presets
+│   └── types/          # Shared TypeScript type definitions
+├── app.json            # Expo configuration (plugins, icons, single-page web settings)
+├── tsconfig.json       # TypeScript configuration with directory path aliases
+└── package.json        # Project scripts and dependencies
+```
+
+---
+
+## 🛠️ Technology Stack
+
+- **Framework:** [Expo (v56)](https://expo.dev) & [Expo Router](https://docs.expo.dev/router/introduction/) (File-based navigation)
+- **UI Engine:** [React Native](https://reactnative.dev) & [React Native Web](https://necolas.github.io/react-native-web/)
+- **Animations:** [React Native Reanimated (v4)](https://docs.swmansion.com/react-native-reanimated/) (Worklets & spring mechanics)
+- **Transitions & Gestures:** [react-native-screen-transitions](https://github.com/eds2002/react-native-screen-transitions)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Package Manager:** [Bun](https://bun.sh)
