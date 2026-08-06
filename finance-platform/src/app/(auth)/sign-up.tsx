@@ -265,7 +265,7 @@ export default function SignUpScreen() {
                 <TouchableOpacity
                     onPress={handleSubmit(onSignUpPress)}
                     disabled={isLoading}
-                    className='items-center w-full mb-4 bg-brand-blue rounded-xl'
+                    className='items-center w-full py-4 mb-4 bg-brand-blue rounded-xl'
                 >
                     {isLoading ? (
                         <ActivityIndicator color='white' />
