@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function SignIn () {
+export default function SignInScreen() {
     return (
         <View>
             <Text>sign-in</Text>
