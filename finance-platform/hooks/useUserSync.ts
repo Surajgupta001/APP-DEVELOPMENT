@@ -31,7 +31,7 @@ export const useUserSync = () => {
                 // If the user exists, update the store with their currency and onboarding status
                 if (existingUser) {
                     setCurrency(existingUser.currency ?? 'INR');
-                    setNeedsOnboarding(existingUser.currency);
+                    setNeedsOnboarding(!existingUser.currency);
                     return;
                 }
 
@@ -68,7 +68,7 @@ export const useUserSync = () => {
 
                 // Update the store with the new user's currency and onboarding status
                 setCurrency(newUser?.currency ?? 'INR');
-                setNeedsOnboarding(newUser?.currency);
+                setNeedsOnboarding(!newUser?.currency);
 
                 // Create a default account for the new user
                 const { error: accountError } = await authSupabase
