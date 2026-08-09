@@ -78,7 +78,7 @@ export default function SignUpScreen() {
         }
     };
 
-    if (signUp.status === 'complete') {
+    if (signUp.status === 'complete' || isSignedIn) {
         return null;
     };
 
