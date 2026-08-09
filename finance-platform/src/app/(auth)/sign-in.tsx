@@ -2,10 +2,8 @@ import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { View, Text, KeyboardAvoidingView, Platform, Image, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { codeSchema, SignInFormSchema, signInSchema } from "../../../lib/schemas/auth";
-
 
 export default function SignInScreen() {
     const { signIn, errors, fetchStatus } = useSignIn();
