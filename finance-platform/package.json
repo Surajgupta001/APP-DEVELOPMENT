@@ -9,6 +9,8 @@
     "@hookform/resolvers": "^5.7.1",
     "@supabase/supabase-js": "^2.112.2",
     "babel-preset-expo": "~56.0.0",
+    "currency-codes": "^2.2.0",
+    "currency-symbol-map": "^5.1.0",
     "expo": "~56.0.19",
     "expo-constants": "~56.0.23",
     "expo-device": "~56.0.4",
