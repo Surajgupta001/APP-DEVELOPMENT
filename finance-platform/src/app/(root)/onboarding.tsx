@@ -6,8 +6,18 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { ALL_CURRENCIES, CurrencyPicker } from '@/components/currencyPicker'
 import { Feather } from '@expo/vector-icons'
+import { useSupabase } from '../../../hooks/useSupabase'
+import { useUser } from '@clerk/expo'
+import { useUserStore } from '../../../store/userStore'
+import { useRouter } from 'expo-router'
 
 export default function OnboardingScreen() {
+
+    const { user } = useUser();
+    const authSupabase = useSupabase();
+
+    const setcurrency = useUserStore((s) => s.setCurrency);
+    const setNeedsOnboarding = useUserStore((s) => s.setNeedsOnboarding);
 
     const {
         control,
@@ -27,8 +37,78 @@ export default function OnboardingScreen() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
+    const router = useRouter();
+
     const handleSave = async ({ startingBalance }: OnboardingData) => {
         // Implementation for saving onboarding data
+        const parsed = parseFloat(startingBalance.replace(/,/g, ''));
+        setSaving(true);
+        setError('');
+
+        const { error: updateError } = await authSupabase
+            .from('users')
+            .update({
+                currency: selectedCurrency.code,
+            })
+            .eq('clerk_id', user!.id)
+
+        if (updateError) {
+            setSaving(false);
+            setError('Failed to save data. Please try again.');
+            console.error("Error updating user in Supabase:", updateError);
+            return;
+        }
+
+        const { data: defaultAccount, error: accountFetchError } = await authSupabase
+            .from('accounts')
+            .select('id, balance')
+            .eq('user_id', user!.id)
+            .eq('is_default', true)
+            .single();
+
+        if (accountFetchError || !defaultAccount) {
+            setSaving(false);
+            setError('Failed to fetch default account. Please try again.');
+            console.error("Error fetching default account from Supabase:", accountFetchError);
+            return;
+        }
+
+        const { error: txError } = await authSupabase
+            .from('transactions')
+            .insert({
+                user_id: user!.id,
+                account_id: defaultAccount.id,
+                type: 'INCOME',
+                amount: parsed,
+                category: 'other_income',
+                description: 'Starting balance',
+                date: new Date().toISOString(),
+                input_method: 'MANUAL',
+            });
+
+        if (txError) {
+            setSaving(false);
+            setError('Failed to create starting balance transaction. Please try again.');
+            console.error("Error creating transaction in Supabase:", txError);
+            return;
+        }
+
+        const { error: balanceError } = await authSupabase
+            .from('accounts')
+            .update({ balance: defaultAccount.balance + parsed })
+            .eq('id', defaultAccount.id);
+
+        setSaving(false);
+
+        if (balanceError) {
+            setError('Failed to update account balance. Please try again.');
+            console.error("Error updating account balance in Supabase:", balanceError);
+            return;
+        }
+
+        setcurrency(selectedCurrency.code);
+        setNeedsOnboarding(false);
+        router.replace('/(root)/(tabs)');
     };
 
     return (
