@@ -1,7 +1,8 @@
+import { Feather } from "@expo/vector-icons";
 import cc from "currency-codes";
 import getSymbol from "currency-symbol-map";
-import { useState } from "react";
-import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useMemo, useState } from "react";
+import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export type CurrencyEntry = {
@@ -32,6 +33,16 @@ export function CurrencyPicker({ visible, selectedCode, onSelect, onClose }: Cur
 
     const [search, setSearch] = useState("");
 
+    const filtered = useMemo(() => {
+        const q = search.toLowerCase();
+        if (!q) return ALL_CURRENCIES();
+        return ALL_CURRENCIES().filter(
+            (c) => c.code.toLowerCase().includes(q) ||
+                c.name.toLowerCase().includes(q) ||
+                c.symbol.toLowerCase().includes(q)
+        )
+    }, [search]);
+
     return (
         <Modal
             visible={visible}
@@ -59,6 +70,29 @@ export function CurrencyPicker({ visible, selectedCode, onSelect, onClose }: Cur
                         </Text>
                     </TouchableOpacity>
                 </View>
+                <FlatList
+                    data={filtered}
+                    keyExtractor={(item) => item.code}
+                    keyboardShouldPersistTaps="handled"
+                    renderItem={({ item }) => (
+                        <TouchableOpacity
+                            onPress={() => {
+                                onSelect(item)
+                                setSearch('')
+                            }}
+                            className="flex-row items-center px-5 py-3.5 border-b border-[#f0ede6]"
+                        >
+                            <Text className="w-8 text-sm text-brand-text-secondary">{item.symbol}</Text>
+                            <Text className="w-12 text-sm font-medium text-brand-bg">{item.code}</Text>
+                            <Text className="flex-1 text-sm text-brand-text-secondary" numberOfLines={1}>
+                                {item.name}
+                            </Text>
+                            {item.code === selectedCode && (
+                                <Feather name="check" size={16} color="#1A1D26" />
+                            )}
+                        </TouchableOpacity>
+                    )}
+                />
             </SafeAreaView>
         </Modal>
     )
