@@ -1,13 +1,21 @@
-import { Text, TouchableOpacity, Alert } from 'react-native'
-import { useAuth, useUser } from '@clerk/expo'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth, useUser } from '@clerk/expo';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { Alert, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
 
     const { user } = useUser();
-    const { signOut } = useAuth();
+    const { signOut, isSignedIn, isLoaded } = useAuth();
     const router = useRouter();
+
+    // Redirect to sign-in if not authenticated
+    useEffect(() => {
+        if (isLoaded && !isSignedIn) {
+            router.replace('/sign-in');
+        }
+    }, [isLoaded, isSignedIn, router]);
 
     const handleSignOut = () => {
         Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -24,6 +32,15 @@ export default function ProfileScreen() {
             }
         ])
     };
+
+    // Show loading state while checking authentication
+    if (!isLoaded) {
+        return (
+            <SafeAreaView className='flex-1 bg-brand-body' edges={['top']}>
+                <Text>Loading...</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView className='flex-1 bg-brand-body' edges={['top']}>
