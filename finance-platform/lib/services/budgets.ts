@@ -16,7 +16,7 @@ export async function getBudgets(supabase: SupabaseClient, userId: string) {
     return data as Budget | null;
 };
 
-export async function userBudget(supabase: SupabaseClient, userId: string, amount: number) {
+export async function upsertBudget(supabase: SupabaseClient, userId: string, amount: number) {
     const { data, error } = await supabase
         .from('budgets')
         .upsert({
