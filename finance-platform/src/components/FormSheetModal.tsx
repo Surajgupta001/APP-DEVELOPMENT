@@ -1,5 +1,5 @@
-import { View, Text, Modal, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React from 'react';
+import { KeyboardAvoidingView, Modal, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 interface FormSheetModalProps {
     visible: boolean;
@@ -19,13 +19,13 @@ export default function FormSheetModal({ visible, title, onClose, children }: Fo
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className='justify-end flex-1 bg-black/40'
             >
-                <View className='px-5 pt-5 pb-8 bg-brand-body rounded-t-2xl'>
-                    <Text className='mb-4 text-base font-semibold text-brand-bg'>{title}</Text>
+                <View className='bg-brand-body rounded-t-[28px] px-5 pt-5 pb-6'>
+                    <Text className='mb-4 text-[28px] font-semibold text-brand-bg'>{title}</Text>
+                    {children}
+                    <TouchableOpacity onPress={onClose} className='items-center py-2 mt-2'>
+                        <Text className='text-sm text-brand-text-secondary'>Cancel</Text>
+                    </TouchableOpacity>
                 </View>
-                {children}
-                <TouchableOpacity onPress={onClose} className='items-center py-2'>
-                    <Text className='text-sm text-brand-text-secondary'>Cancel</Text>
-                </TouchableOpacity>
             </KeyboardAvoidingView>
         </Modal>
     )
