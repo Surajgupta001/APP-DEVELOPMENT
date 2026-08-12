@@ -1,5 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Transaction, Transactionfilter } from "../../types/index";
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { Transaction, Transactionfilter, TransactionType } from "../../types/index";
 
 export async function getTransactions(supabase: SupabaseClient, userId: string, filter: Transactionfilter = {}) {
     let query = supabase
@@ -22,4 +22,53 @@ export async function getTransactions(supabase: SupabaseClient, userId: string, 
     }
 
     return data as Transaction[]
+};
+
+export async function deleteTransaction(supabase: SupabaseClient, transactionId: string, accountId: string, amount: number, type: TransactionType) {
+    const { error: deleteError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId);
+
+    if (deleteError) {
+        console.error("Error deleting transaction from Supabase:", deleteError);
+        return {
+            success: false,
+            message: 'Failed to delete transaction. Please try again.',
+            error: deleteError
+        }
+    }
+
+    const { data: account, error: fetchError } = await supabase
+        .from('accounts')
+        .select('balance')
+        .eq('id', accountId)
+        .single();
+
+    if (fetchError) {
+        console.error("Error fetching account balance from Supabase:", fetchError);
+        return {
+            success: false,
+            message: 'Failed to fetch account balance. Please try again.',
+            error: fetchError
+        }
+    }
+
+    const delta = type === 'INCOME' ? -amount : amount;
+
+    const { error: balanceError } = await supabase
+        .from('accounts')
+        .update({ balance: account.balance + delta })
+        .eq('id', accountId);
+
+    if (balanceError) {
+        console.error("Error updating account balance in Supabase:", balanceError);
+        return {
+            success: false,
+            message: 'Failed to update account balance. Please try again.',
+            error: balanceError
+        }
+    }
+
+    return { error: null }
 };
