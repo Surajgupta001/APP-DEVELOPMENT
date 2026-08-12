@@ -15,6 +15,7 @@ import { Feather } from '@expo/vector-icons';
 import { formatPrice } from '../../../../lib/utils';
 import { PieChart } from 'react-native-gifted-charts'
 import TransactionRow from '@/components/TransactionRow';
+import BudgetModal from '@/components/BudgetModal';
 
 const QUICK_ACTIONS = [
     {
@@ -340,6 +341,14 @@ export default function HomeScreen() {
                     )}
                 </View>
             </ScrollView>
+            {user && (
+                <BudgetModal
+                    visible={budgetModalOpen}
+                    budget={budget}
+                    onClose={() => setBudgetModalOpen(false)}
+                    onSaved={() => setBudgetModalOpen(false)}
+                />
+            )}
         </SafeAreaView >
     )
 }
