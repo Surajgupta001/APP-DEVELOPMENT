@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { Transaction, Transactionfilter, TransactionType } from "../../types/index";
+import type { NewTransaction, Transaction, Transactionfilter, TransactionType } from "../../types/index";
 
 export async function getTransactions(supabase: SupabaseClient, userId: string, filter: Transactionfilter = {}) {
     let query = supabase
@@ -71,4 +71,57 @@ export async function deleteTransaction(supabase: SupabaseClient, transactionId:
     }
 
     return { error: null }
+};
+
+export async function createTransaction(supabase: SupabaseClient, payload: NewTransaction) {
+    const { data: transaction, error: insertError } = await supabase
+        .from('transactions')
+        .insert(payload)
+        .select()
+        .single();
+
+    if (insertError) {
+        console.error("Error inserting transaction into Supabase:", insertError);
+        return {
+            success: false,
+            message: 'Failed to create transaction. Please try again.',
+            error: insertError
+        }
+    }
+
+    const { data: account, error: fetchError } = await supabase
+        .from('accounts')
+        .select('balance')
+        .eq('id', payload.account_id)
+        .single();
+
+    if (fetchError) {
+        console.error("Error fetching account balance from Supabase:", fetchError);
+        return {
+            success: false,
+            message: 'Failed to fetch account balance. Please try again.',
+            error: fetchError
+        }
+    }
+
+    const delta = payload.type === 'INCOME' ? payload.amount : -payload.amount;
+
+    const { error: balanceError } = await supabase
+        .from('accounts')
+        .update({ balance: account.balance + delta })
+        .eq('id', payload.account_id);
+
+    if (balanceError) {
+        console.error("Error updating account balance in Supabase:", balanceError);
+        return {
+            success: false,
+            message: 'Failed to update account balance. Please try again.',
+            error: balanceError
+        }
+    }
+
+    return {
+        transaction: transaction as Transaction,
+        error: null
+    }
 };
