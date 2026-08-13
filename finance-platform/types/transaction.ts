@@ -37,3 +37,12 @@ export type NewTransaction = {
     input_method: InputMethod;
     voice_transcript?: string | null;
 };
+
+export type ExtractedTransaction = {
+    type: TransactionType | null;
+    amount: number | null;
+    category: CategoryKey | null;
+    description: string | null;
+    date: string | null;
+    transcript: string | null;
+};
