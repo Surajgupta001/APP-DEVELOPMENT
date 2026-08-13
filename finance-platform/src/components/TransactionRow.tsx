@@ -2,7 +2,6 @@ import { Feather } from '@expo/vector-icons';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { getCategoryConfig } from '../../constants/categories';
 import { formatPrice } from '../../lib/utils';
-import { useUserStore } from '../../store/userStore';
 import { Transaction } from '../../types';
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
