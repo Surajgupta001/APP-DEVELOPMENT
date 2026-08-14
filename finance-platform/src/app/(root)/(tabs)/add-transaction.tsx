@@ -1,21 +1,23 @@
-import { View, Text, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native'
 import { useEffect, useState } from 'react'
 import { TransactionFormValues, transactionSchema } from '../../../../lib/schemas/transactions';
-import { Account, InputMethod } from '../../../../types';
+import { Account, ExtractedTransaction, InputMethod } from '../../../../types';
 import { useUser } from '@clerk/expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCreateTransaction } from '../../../../hooks/mutations/useTransactionMutations';
 import { useAccountQuery } from '../../../../hooks/queries/useAccountsQuery';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../../../constants/categories';
+import { CategoryKey, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../../../constants/categories';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import AIActionCard from '@/components/AIActionCard';
 import { AI_GRADIENT, AI_GRADIENT_REVERSE } from '../../../../constants/theme';
 import PillGroup from '@/components/PillGroup';
-import { format, set } from 'date-fns';
+import { format, isValid, set } from 'date-fns';
 import CalendarPicker from '@/components/CalendarPicker';
+import ReceiptScannerModal from '@/components/ReceiptScannerModal';
+import { extractTransactionFromReceipt } from '../../../../lib/services/extractTransaction';
 
 const TYPE_OPTIONS = [
     { key: "EXPENSE" as const, label: "Expense" },
@@ -106,6 +108,58 @@ export default function AddTransactionScreen() {
             router.back();
         } else {
             router.replace("/(root)/(tabs)/transactions");
+        }
+    };
+
+    const applyextraction = (result: ExtractedTransaction) => {
+        const categoryList = result.type === "INCOME" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
+        const isvalidCategory = (key: CategoryKey | null): key is CategoryKey => (
+            !!key && categoryList.some(c => c.key === key)
+        );
+
+        if (result.type) setValue("type", result.type);
+        if (isvalidCategory(result.category)) setValue("category", result.category);
+        if (result.amount != null) setValue("amount", result.amount.toString());
+        if (result.description) setValue("description", result.description);
+        if (result.date) {
+            const parsedDate = new Date(result.date);
+            if (!isValid(parsedDate) && parsedDate <= new Date()) {
+                setValue("date", parsedDate);
+            }
+        }
+
+        const missing = [
+            result.amount == null && 'amount',
+            !isvalidCategory(result.category) && 'category',
+        ].filter(Boolean);
+
+        if (missing.length > 0) {
+            Alert.alert(
+                'Review before Saving',
+                `We couldn't extract the following details from the receipt: ${missing.join(', ')}. Please review and fill them in before saving.`,
+                [{ text: 'OK' }]
+            )
+        }
+    };
+
+    const handleReceiptCaptured = async (base64: string, mimType: string) => {
+        setScannerOpen(false);
+        setInputMethod("RECEIPT_SCAN");
+
+        try {
+            const extracted = await extractTransactionFromReceipt(base64, mimType);
+            applyextraction(extracted);
+            setInputMethod("RECEIPT_SCAN");
+        } catch (error) {
+            console.error("Error extracting transaction from receipt:", error);
+            Alert.alert(
+                "Extraction Failed",
+                "We couldn't extract transaction details from the receipt. Please enter the details manually.",
+                [{ text: "OK" }]
+            );
+        } finally {
+            setScanning(false);
         }
     };
 
@@ -344,6 +398,11 @@ export default function AddTransactionScreen() {
                     </View>
                 </View>
             )}
+            <ReceiptScannerModal
+                visible={scannerOpen}
+                onClose={() => setScannerOpen(false)}
+                onCaptured={handleReceiptCaptured}
+            />
         </SafeAreaView>
     );
 }
