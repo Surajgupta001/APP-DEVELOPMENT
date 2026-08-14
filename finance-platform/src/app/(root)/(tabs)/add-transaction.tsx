@@ -18,6 +18,7 @@ import { format, isValid, set } from 'date-fns';
 import CalendarPicker from '@/components/CalendarPicker';
 import ReceiptScannerModal from '@/components/ReceiptScannerModal';
 import { extractTransactionFromReceipt } from '../../../../lib/services/extractTransaction';
+import VoiceRecorderModal from '@/components/VoiceRecorderModal';
 
 const TYPE_OPTIONS = [
     { key: "EXPENSE" as const, label: "Expense" },
@@ -162,6 +163,22 @@ export default function AddTransactionScreen() {
             setScanning(false);
         }
     };
+
+    const handleVoiceExtracted = async (result: ExtractedTransaction) => {
+        applyextraction(result);
+        setVoiceTranscript(result.transcript)
+        setInputMethod("VOICE")
+    };
+
+    useEffect(() => {
+        if (params.action === 'scan') {
+            setScannerOpen(true);
+            router.setParams({ action: undefined });
+        } else {
+            setVoiceModalOpen(true);
+            router.setParams({ action: undefined });
+        }
+    }, [params.action, router]);
 
     useEffect(() => {
         if (accounts.length > 0) {
@@ -402,6 +419,12 @@ export default function AddTransactionScreen() {
                 visible={scannerOpen}
                 onClose={() => setScannerOpen(false)}
                 onCaptured={handleReceiptCaptured}
+            />
+
+            <VoiceRecorderModal
+                visible={voiceModalOpen}
+                onClose={() => setVoiceModalOpen(false)}
+                onExtracted={handleVoiceExtracted}
             />
         </SafeAreaView>
     );

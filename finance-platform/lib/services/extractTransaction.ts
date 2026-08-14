@@ -1,5 +1,7 @@
 import { CATEGORY_KEYS_EXPENSE, CATEGORY_KEYS_INCOME } from "../../constants/categories";
 import { ExtractedTransaction } from "../../types";
+import { File, Paths } from "expo-file-system";
+import { fetch } from "expo/fetch";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -20,7 +22,6 @@ async function callGroqVision(promptText: string, mimeType: string, base64Image:
         },
         body: JSON.stringify({
             model: "qwen/qwen3.6-27b",
-
             messages: [
                 {
                     role: "user",
@@ -38,7 +39,6 @@ async function callGroqVision(promptText: string, mimeType: string, base64Image:
                     ],
                 },
             ],
-
             response_format: {
                 type: "json_object",
             },
@@ -84,17 +84,13 @@ export async function extractTransactionFromReceipt(base64Image: string, mimeTyp
     - "category" must be exactly one of:
       ${CATEGORY_KEYS_EXPENSE.join(", ")}
     - "description" should ideally be the merchant/store name.
-    - "date" must be YYYY-MM-DD if visible on the receipt.
+    - "date" must be YYYY-MM-DD if visible.
     - "transcript" must always be null.
     - If a field cannot be confidently determined, use null.
     - Do not guess.
     `;
 
-    return callGroqVision(
-        prompt,
-        mimeType,
-        base64Image
-    );
+    return callGroqVision(prompt, mimeType, base64Image);
 }
 
 async function transcribeAudio(base64Audio: string, mimeType: string): Promise<string> {
@@ -104,48 +100,47 @@ async function transcribeAudio(base64Audio: string, mimeType: string): Promise<s
         throw new Error("Missing EXPO_PUBLIC_GROQ_API_KEY");
     }
 
-    const binary = Uint8Array.from(
-        atob(base64Audio),
-        (char) => char.charCodeAt(0)
-    );
+    const extension = mimeType.includes("wav") ? "wav" : mimeType.includes("mp3") ? "mp3" : "m4a";
 
-    const blob = new Blob([binary], {
-        type: mimeType,
-    });
+    const file = new File(Paths.cache, `voice-recording.${extension}`);
+
+    file.write(base64Audio, { encoding: "base64" });
 
     const formData = new FormData();
 
-    formData.append("file", blob, "voice-recording.m4a");
-
+    formData.append("file", file);
     formData.append("model", "whisper-large-v3-turbo");
-
     formData.append("response_format", "json");
 
-    const res = await fetch(GROQ_AUDIO_URL, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: formData,
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-
-        throw new Error(
-            `Groq transcription failed: ${errText}`
+    try {
+        const res = await fetch(
+            GROQ_AUDIO_URL,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                },
+                body: formData,
+            }
         );
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Groq transcription failed: ${errText}`);
+        }
+
+        const data = await res.json();
+
+        if (!data?.text) {
+            throw new Error("No transcription returned from Groq");
+        }
+
+        return data.text;
+    } finally {
+        if (file.exists) {
+            file.delete();
+        }
     }
-
-    const data = await res.json();
-
-    if (!data?.text) {
-        throw new Error(
-            "No transcription returned from Groq"
-        );
-    }
-
-    return data.text;
 }
 
 async function extractTransactionFromText(transcript: string): Promise<ExtractedTransaction> {
@@ -180,7 +175,6 @@ async function extractTransactionFromText(transcript: string): Promise<Extracted
 
     - "type" must be EXPENSE or INCOME.
     - "amount" is the amount mentioned as a plain number.
-    - "category" must be exactly one of:
 
     Expense categories:
     ${CATEGORY_KEYS_EXPENSE.join(", ")}
@@ -192,40 +186,39 @@ async function extractTransactionFromText(transcript: string): Promise<Extracted
     - If type is INCOME, use only an income category.
     - "description" should briefly describe the transaction.
     - "date" must be YYYY-MM-DD.
-    - Resolve relative dates such as "today", "yesterday", or "Monday" using today's date.
+    - Resolve relative dates such as "today", "yesterday", or "Monday"
+      using today's date.
     - "transcript" must contain the exact transcription.
     - If something cannot be confidently determined, use null.
     - Do not guess.
     `;
 
-    const res = await fetch(GROQ_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model: "openai/gpt-oss-20b",
-
-            messages: [
-                {
-                    role: "user",
-                    content: prompt,
-                },
-            ],
-
-            response_format: {
-                type: "json_object",
+    const res = await fetch(
+        GROQ_URL,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
             },
-        }),
-    });
+            body: JSON.stringify({
+                model: "openai/gpt-oss-20b",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ],
+                response_format: {
+                    type: "json_object",
+                },
+            }),
+        }
+    );
 
     if (!res.ok) {
         const errText = await res.text();
-
-        throw new Error(
-            `Groq extraction failed: ${errText}`
-        );
+        throw new Error(`Groq extraction failed: ${errText}`);
     }
 
     const data = await res.json();
@@ -235,12 +228,10 @@ async function extractTransactionFromText(transcript: string): Promise<Extracted
     if (!text) {
         throw new Error("No response from Groq");
     }
-
     return JSON.parse(text) as ExtractedTransaction;
 }
 
 export async function extractTransactionFromVoice(base64Audio: string, mimeType: string): Promise<ExtractedTransaction> {
     const transcript = await transcribeAudio(base64Audio, mimeType);
-
     return extractTransactionFromText(transcript);
 }
