@@ -124,7 +124,8 @@ export default function AddTransactionScreen() {
             </View>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior="padding"
+                keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 80}
                 className="flex-1"
             >
                 {loadingAccounts ? (
@@ -147,7 +148,9 @@ export default function AddTransactionScreen() {
                     </View>
                 ) : (
                     <ScrollView
+                        className="flex-1"
                         showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                         contentContainerStyle={{
                             paddingHorizontal: 20,
                             paddingBottom: 100,
@@ -242,6 +245,7 @@ export default function AddTransactionScreen() {
                                 }))}
                                 value={category}
                                 onChange={(key) => setValue("category", key)}
+                                scrollable
                             />
                         </View>
 
@@ -254,6 +258,7 @@ export default function AddTransactionScreen() {
                                 options={accounts.map((a) => ({ key: a.id, label: a.name }))}
                                 value={accountId}
                                 onChange={(key) => setValue("accountId", key)}
+                                scrollable
                             />
                         </View>
                         {errors.accountId && (
@@ -305,6 +310,9 @@ export default function AddTransactionScreen() {
                                     onBlur={onBlur}
                                     placeholder="e.g. Swiggy order"
                                     placeholderTextColor="#8A8D96"
+                                    multiline
+                                    numberOfLines={3}
+                                    textAlignVertical="top"
                                     className="bg-white border border-[#E8E6DF] rounded-xl px-4 py-3.5 mb-4 text-sm text-brand-bg"
                                 />
                             )}
