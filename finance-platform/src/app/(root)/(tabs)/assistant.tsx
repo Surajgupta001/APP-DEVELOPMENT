@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/expo';
-import { View, Text, KeyboardAvoidingView, Platform, FlatList, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native'
 import { useUserStore } from '../../../../store/userStore';
 import { useTransactionsQuery } from '../../../../hooks/queries/useTransactionsQuery';
 import { useBudgetQuery } from '../../../../hooks/queries/useBudgetQuery';
@@ -100,19 +100,18 @@ export default function AssistantScreen() {
                 <Text className="text-xl font-semibold text-brand-bg">Assistant</Text>
             </View>
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-                keyboardVerticalOffset={Platform.OS === "ios" ? -70 : 0}
-                className="flex-1"
-            >
+            <View className="flex-1">
                 <FlatList
                     data={messages}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => <MessageBubble message={item} />}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="interactive"
                     contentContainerStyle={{
                         paddingHorizontal: 20,
                         paddingTop: 8,
                         paddingBottom: 12,
+                        flexGrow: 1,
                     }}
                     ListFooterComponent={
                         sending ? (
@@ -121,28 +120,27 @@ export default function AssistantScreen() {
                             </View>
                         ) : null
                     }
+                    ListHeaderComponent={
+                        messages.length <= 1 ? (
+                            <View className="gap-2 pb-2">
+                                {SUGGESTED_PROMPTS.map((prompt) => (
+                                    <TouchableOpacity
+                                        key={prompt}
+                                        onPress={() => sendMessage(prompt)}
+                                        className="bg-white rounded-xl border border-[#E8E6DF] px-3.5 py-2.5 self-start"
+                                    >
+                                        <Text className="text-xs text-brand-text-secondary">
+                                            {prompt}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        ) : null
+                    }
                 />
 
-                {messages.length <= 1 && (
-                    <View className="gap-2 px-5 pb-2">
-                        {SUGGESTED_PROMPTS.map((prompt) => (
-                            <TouchableOpacity
-                                key={prompt}
-                                onPress={() => sendMessage(prompt)}
-                                className="bg-white rounded-xl border border-[#E8E6DF] px-3.5 py-2.5 self-start"
-                            >
-                                <Text className="text-xs text-brand-text-secondary">
-                                    {prompt}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
-
-                {/* fixed padding to clear the native tab bar - simplest fix, adjust the 90 if it still overlaps on your device */}
                 <View
-                    className="flex-row items-center gap-2 px-5 pt-2"
-                    style={{ paddingBottom: 90 }}
+                    className="flex-row items-center gap-2 px-5 pt-2 pb-3"
                 >
                     <TextInput
                         value={input}
@@ -163,7 +161,7 @@ export default function AssistantScreen() {
                         <Feather name="arrow-up" size={18} color="#fff" />
                     </TouchableOpacity>
                 </View>
-            </KeyboardAvoidingView>
+            </View>
         </SafeAreaView>
     );
 }
