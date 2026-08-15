@@ -35,3 +35,15 @@ export async function upsertBudget(supabase: SupabaseClient, userId: string, amo
 
     return data as Budget;
 };
+
+export async function deleteBudget(supabase: SupabaseClient, userId: string) {
+    const { error } = await supabase
+        .from('budgets')
+        .delete()
+        .eq('user_id', userId);
+
+    if (error) {
+        console.error("Error deleting budget in Supabase:", error);
+        throw new Error('Failed to remove budget. Please try again.');
+    }
+};

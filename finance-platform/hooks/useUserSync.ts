@@ -84,6 +84,19 @@ export const useUserSync = () => {
                 // Handle the case where there was an error creating the default account
                 if (accountError) {
                     console.error("Error creating default account:", accountError);
+                    // Retry once — the first attempt may race with RLS propagation
+                    const { error: retryError } = await authSupabase
+                        .from('accounts')
+                        .insert({
+                            user_id: user.id,
+                            name: 'CASH',
+                            type: 'CASH',
+                            balance: 0,
+                            is_default: true,
+                        });
+                    if (retryError) {
+                        console.error("Retry also failed:", retryError);
+                    }
                 }
             } catch (error) {
                 console.error("Unexpected error during user sync:", error);

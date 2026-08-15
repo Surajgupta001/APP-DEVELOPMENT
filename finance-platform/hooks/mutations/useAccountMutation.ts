@@ -3,6 +3,7 @@ import { useSupabase } from "../useSupabase";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AccountType } from "../../types";
 import { createAccount, deleteAccount, setDefaultAccount, updateAccount } from "../../lib/services/account";
+import { querykeys } from "../../lib/query/key";
 
 export function useCreateAccount() {
     const { user } = useUser();
@@ -12,32 +13,34 @@ export function useCreateAccount() {
     return useMutation({
         mutationFn: (payload: { name: string; type: AccountType }) => createAccount(supabase, user?.id!, payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: querykeys.accounts(user?.id!) });
         },
     });
 };
 
 export function useUpdateAccount() {
+    const { user } = useUser();
     const supabase = useSupabase();
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: ({ accountId, payload }: { accountId: string; payload: { name: string; type: AccountType } }) => updateAccount(supabase, accountId, payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: querykeys.accounts(user?.id!) });
         },
     })
 };
 
 export function useDeleteAccount() {
+    const { user } = useUser();
     const supabase = useSupabase();
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: ({ accountId, force = false }: { accountId: string; force?: boolean }) => deleteAccount(supabase, accountId, { force }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['accounts'] });
-            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: querykeys.accounts(user?.id!) });
+            queryClient.invalidateQueries({ queryKey: querykeys.transactions(user?.id!) });
         },
     });
 };
@@ -50,7 +53,7 @@ export function useSetDefaultAccount() {
     return useMutation({
         mutationFn: (accountId: string) => setDefaultAccount(supabase, user?.id!, accountId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: querykeys.accounts(user?.id!) });
         },
     });
 };

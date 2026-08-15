@@ -36,6 +36,7 @@ export type NewTransaction = {
     date: string;
     input_method: InputMethod;
     voice_transcript?: string | null;
+    status?: string;
 };
 
 export type ExtractedTransaction = {

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native'
 import { Account, AccountType } from '../../types';
 import { useEffect, useState } from 'react';
 import { useCreateAccount, useDeleteAccount, useUpdateAccount } from '../../hooks/mutations/useAccountMutation';
@@ -21,9 +21,10 @@ interface AccountModalProps {
     onSaved: () => void;
     onDeleted: () => void;
     onMadeDefault: () => void;
+    settingDefault?: boolean;
 };
 
-export default function AccountModal({ visible, account, onClose, onSaved, onDeleted, onMadeDefault }: AccountModalProps) {
+export default function AccountModal({ visible, account, onClose, onSaved, onDeleted, onMadeDefault, settingDefault }: AccountModalProps) {
 
     const isEditing = !!account;
 
@@ -85,7 +86,7 @@ export default function AccountModal({ visible, account, onClose, onSaved, onDel
 
             Alert.alert(
                 'Delete Account',
-                `This will also delete ${result?.transactionCount} transactions${result?.transactionCount == 1 ? "" : 's'}.This action cannot be undone. Are you sure you want to delete this account?`,
+                `This account has ${result?.transactionCount} transaction${(result?.transactionCount ?? 0) === 1 ? "" : "s"}. Deleting it will also remove all associated transactions. This action cannot be undone. Are you sure?`,
                 [
                     { text: 'Cancel', style: 'cancel' },
                     {
@@ -161,10 +162,14 @@ export default function AccountModal({ visible, account, onClose, onSaved, onDel
             </TouchableOpacity>
 
             {isEditing && !account.is_default && (
-                <TouchableOpacity onPress={onMadeDefault} className="items-center py-3">
-                    <Text className="text-sm font-medium text-brand-blue">
-                        Make default
-                    </Text>
+                <TouchableOpacity onPress={onMadeDefault} disabled={settingDefault} className="items-center py-3">
+                    {settingDefault ? (
+                        <ActivityIndicator size="small" color="#4A9EFF" />
+                    ) : (
+                        <Text className="text-sm font-medium text-brand-blue">
+                            Make default
+                        </Text>
+                    )}
                 </TouchableOpacity>
             )}
 

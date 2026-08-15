@@ -21,7 +21,7 @@ export default function TransactionRow({ tx, onDelete }: TransactionRowProps) {
 
     const config = getCategoryConfig(tx.category);
     const isIncome = tx.type === 'INCOME';
-    const curreny = useUserStore((state) => state.currency);
+    const currency = useUserStore((state) => state.currency);
 
     const row = (
         <View
@@ -67,7 +67,7 @@ export default function TransactionRow({ tx, onDelete }: TransactionRowProps) {
                     }`}
             >
                 {isIncome ? "+" : "-"}
-                {formatPrice(tx.amount, curreny)}
+                {formatPrice(tx.amount, currency)}
             </Text>
         </View>
     );

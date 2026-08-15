@@ -1,3 +1,7 @@
+import { wrapEmail } from "../_shared/emailLayout";
+import { sendEmail } from "../_shared/resend";
+import { createSupabaseAdmin } from "../_shared/supabaseAdmin";
+
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 interface GenerateTipsParams {
@@ -98,3 +102,77 @@ Return ONLY valid JSON in exactly this format:
 
     return result.tips as string[];
 }
+
+Deno.serve(async () => {
+    const supabase = createSupabaseAdmin();
+    const now = new Date();
+
+    const weekAgo = new Date(now);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const { data: users, error: usersError } = await supabase
+        .from("users")
+        .select("clerk_id, email, name, currency");
+    if (usersError) throw usersError;
+
+    let sent = 0;
+
+    for (const user of users ?? []) {
+        if (!user.email) continue;
+
+        const { data: expenseRows } = await supabase
+            .from("transactions")
+            .select("amount, category")
+            .eq("user_id", user.clerk_id)
+            .eq("type", "EXPENSE")
+            .gte("date", weekAgo.toISOString());
+
+        const { data: incomeRows } = await supabase
+            .from("transactions")
+            .select("amount")
+            .eq("user_id", user.clerk_id)
+            .eq("type", "INCOME")
+            .gte("date", weekAgo.toISOString());
+
+        const totalExpense = (expenseRows ?? []).reduce((sum, tx) => sum + tx.amount, 0);
+        const totalIncome = (incomeRows ?? []).reduce((sum, tx) => sum + tx.amount, 0);
+
+        if (totalExpense === 0 && totalIncome === 0) continue;
+
+        const byCategory: Record<string, number> = {};
+        for (const tx of expenseRows ?? []) {
+            byCategory[tx.category] = (byCategory[tx.category] || 0) + tx.amount;
+        }
+
+        try {
+            const tips = await generateTips({
+                currency: user.currency ?? "USD",
+                byCategory,
+                totalExpense,
+                totalIncome,
+            });
+
+            const html = wrapEmail(`
+                <p style="margin:0 0 16px;">Hi ${user.name ?? "there"},</p>
+                <p style="margin:0 0 20px;">Here are your personalized finance tips for this week:</p>
+                <ul style="padding-left:20px;margin:0 0 20px;">
+                    ${tips.map((tip) => `<li style="margin-bottom:8px;">${tip}</li>`).join("")}
+                </ul>
+                <p style="margin:0;color:#5C5F68;">Keep tracking your spending in Welth to get more tailored advice!</p>
+            `);
+
+            await sendEmail({
+                to: user.email,
+                subject: "Welth Weekly Tips: Personalized finance advice",
+                html,
+            });
+            sent++;
+        } catch (err) {
+            console.error(`Failed to send weekly tips to ${user.email}:`, err);
+        }
+    }
+
+    return new Response(JSON.stringify({ sent }), {
+        headers: { "Content-Type": "application/json" },
+    });
+});

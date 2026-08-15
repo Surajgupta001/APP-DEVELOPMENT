@@ -88,6 +88,18 @@ export async function deleteAccount(supabase: SupabaseClient, accountId: string,
         return { deleted: false, transactionCount };
     }
 
+    if (force && transactionCount > 0) {
+        const { error: deleteTransactionsError } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('account_id', accountId);
+
+        if (deleteTransactionsError) {
+            console.error("Error deleting transactions for account in Supabase:", deleteTransactionsError);
+            throw new Error('Failed to delete transactions for account. Please try again.');
+        }
+    }
+
     const { error: deleteError } = await supabase
         .from('accounts')
         .delete()

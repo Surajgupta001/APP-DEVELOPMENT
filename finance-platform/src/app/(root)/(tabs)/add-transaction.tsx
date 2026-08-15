@@ -93,6 +93,7 @@ export default function AddTransactionScreen() {
             date: values.date.toISOString(),
             input_method: inputMethod,
             voice_transcript: inputMethod === "VOICE" ? voiceTranscript : null,
+            status: 'VERIFIED',
         });
 
         if (createError) {
@@ -125,7 +126,7 @@ export default function AddTransactionScreen() {
         if (result.description) setValue("description", result.description);
         if (result.date) {
             const parsedDate = new Date(result.date);
-            if (!isValid(parsedDate) && parsedDate <= new Date()) {
+            if (isValid(parsedDate) && parsedDate <= new Date()) {
                 setValue("date", parsedDate);
             }
         }
@@ -173,9 +174,12 @@ export default function AddTransactionScreen() {
     useEffect(() => {
         if (params.action === 'scan') {
             setScannerOpen(true);
-            router.setParams({ action: undefined });
-        } else {
+        } else if (params.action === 'voice') {
             setVoiceModalOpen(true);
+        } else if (params.action === 'manual') {
+            // no-op, just clear the param
+        }
+        if (params.action) {
             router.setParams({ action: undefined });
         }
     }, [params.action, router]);
