@@ -67,9 +67,64 @@ export default function OnboardingScreen() {
             .single();
 
         if (accountFetchError || !defaultAccount) {
+            // Fallback: create a default account if one doesn't exist
+            const { data: newAccount, error: createError } = await authSupabase
+                .from('accounts')
+                .insert({
+                    user_id: user!.id,
+                    name: 'CASH',
+                    type: 'CASH',
+                    balance: 0,
+                    is_default: true,
+                })
+                .select('id, balance')
+                .single();
+
+            if (createError || !newAccount) {
+                setSaving(false);
+                setError('Failed to create default account. Please try again.');
+                console.error("Error creating default account:", createError);
+                return;
+            }
+
+            // Use the newly created account
+            const { error: txError } = await authSupabase
+                .from('transactions')
+                .insert({
+                    user_id: user!.id,
+                    account_id: newAccount.id,
+                    type: 'INCOME',
+                    amount: parsed,
+                    category: 'other_income',
+                    description: 'Starting balance',
+                    date: new Date().toISOString(),
+                    input_method: 'MANUAL',
+                    status: 'VERIFIED',
+                });
+
+            if (txError) {
+                setSaving(false);
+                setError('Failed to create starting balance transaction. Please try again.');
+                console.error("Error creating transaction in Supabase:", txError);
+                return;
+            }
+
+            const { error: balanceError } = await authSupabase
+                .from('accounts')
+                .update({ balance: newAccount.balance + parsed })
+                .eq('id', newAccount.id);
+
             setSaving(false);
-            setError('Failed to fetch default account. Please try again.');
-            console.error("Error fetching default account from Supabase:", accountFetchError);
+
+            if (balanceError) {
+                setError('Failed to update account balance. Please try again.');
+                console.error("Error updating account balance in Supabase:", balanceError);
+                return;
+            }
+
+            setcurrency(selectedCurrency.code);
+            setNeedsOnboarding(false);
+            router.replace('/(root)/(tabs)');
             return;
         }
 
@@ -84,6 +139,7 @@ export default function OnboardingScreen() {
                 description: 'Starting balance',
                 date: new Date().toISOString(),
                 input_method: 'MANUAL',
+                status: 'VERIFIED',
             });
 
         if (txError) {

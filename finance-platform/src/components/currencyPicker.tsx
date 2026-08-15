@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import cc from "currency-codes";
 import getSymbol from "currency-symbol-map";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,15 +11,17 @@ export type CurrencyEntry = {
     symbol: string;
 };
 
+const ALL_CURRENCIES_LIST: CurrencyEntry[] = cc
+    .codes()
+    .map((code) => ({
+        code,
+        name: cc.code(code)?.currency ?? code,
+        symbol: getSymbol(code) ?? code,
+    }))
+    .filter((currency) => currency.symbol !== currency.code);
+
 export function ALL_CURRENCIES(): CurrencyEntry[] {
-    return cc
-        .codes()
-        .map((code) => ({
-            code,
-            name: cc.code(code)?.currency ?? code,
-            symbol: getSymbol(code) ?? code,
-        }))
-        .filter((currency) => currency.symbol !== currency.code);
+    return ALL_CURRENCIES_LIST;
 }
 
 interface CurrencyPickerProps {
@@ -65,7 +67,7 @@ export function CurrencyPicker({ visible, selectedCode, onSelect, onClose }: Cur
                             onClose();
                         }}
                     >
-                        <Text className="text-brand-text-secondary texts-m">
+                        <Text className="text-brand-text-secondary text-sm">
                             Cancel
                         </Text>
                     </TouchableOpacity>

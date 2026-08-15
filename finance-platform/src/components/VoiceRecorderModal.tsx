@@ -150,7 +150,18 @@ export default function VoiceRecorderModal({ visible, onClose, onExtracted }: Vo
 
             const file = new File(uri);
             const base64 = await file.base64();
-            const result = await extractTransactionFromVoice(base64, "audio/m4a");
+
+            const ext = uri.split('.').pop()?.toLowerCase() ?? 'm4a';
+            const mimeMap: Record<string, string> = {
+                m4a: 'audio/m4a',
+                mp4: 'audio/mp4',
+                caf: 'audio/caf',
+                wav: 'audio/wav',
+                mp3: 'audio/mpeg',
+            };
+            const mimeType = mimeMap[ext] ?? 'audio/m4a';
+
+            const result = await extractTransactionFromVoice(base64, mimeType);
             onExtracted(result);
             onClose();
         } catch (err) {
@@ -190,7 +201,10 @@ export default function VoiceRecorderModal({ visible, onClose, onExtracted }: Vo
                                 try again.
                             </Text>
                             <TouchableOpacity
-                                onPress={onClose}
+                                onPress={() => {
+                                    setStatus("idle");
+                                    onClose();
+                                }}
                                 className="bg-white/10 rounded-xl px-6 py-3.5"
                             >
                                 <Text className="text-sm font-semibold text-white">Close</Text>

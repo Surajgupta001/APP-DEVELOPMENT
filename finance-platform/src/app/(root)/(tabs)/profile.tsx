@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View, ViewBase } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Account, AccountType } from "../../../../types";
 import { useAuth, useUser } from "@clerk/expo";
@@ -59,7 +59,7 @@ function Row({ icon, label, value, onPress, showChevron, danger }: RowProps) {
 
 function SectionLabel({ children }: { children: string }) {
     return (
-        <Text className='text-brand-text-muted text-[11px] uppercase trancking-wide mb-2 mt-6 mx-5'>
+        <Text className='text-brand-text-muted text-[11px] uppercase tracking-wide mb-2 mt-6 mx-5'>
             {children}
         </Text>
     );
@@ -86,7 +86,7 @@ export default function ProfileScreen() {
         isError: accountError,
     } = useAccountQuery();
 
-    const { mutateAsync: setDefaultAccount } = useSetDefaultAccount();
+    const { mutateAsync: setDefaultAccount, isPending: settingDefault } = useSetDefaultAccount();
 
     const handlePickAvatar = async () => {
         if (!user) return;
@@ -299,6 +299,7 @@ export default function ProfileScreen() {
                     onSaved={closeModal}
                     onDeleted={closeModal}
                     onMadeDefault={handleMadeDefault}
+                    settingDefault={settingDefault}
                 />
             )}
 

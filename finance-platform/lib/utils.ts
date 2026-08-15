@@ -44,8 +44,8 @@ function buildCsvContent(transactions: Transaction[]) {
         'Date',
         'Type',
         'Category',
-        'Amount',
         'Description',
+        'Amount',
         'Input Method',
     ];
 

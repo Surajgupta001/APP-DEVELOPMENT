@@ -3,7 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, FlatList, ActivityIndicator
 import { useUserStore } from '../../../../store/userStore';
 import { useTransactionsQuery } from '../../../../hooks/queries/useTransactionsQuery';
 import { useBudgetQuery } from '../../../../hooks/queries/useBudgetQuery';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { askAssistant } from '../../../../lib/services/assistant';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -50,15 +50,16 @@ export default function AssistantScreen() {
 
     const { user } = useUser();
     const currency = useUserStore((s) => s.currency);
-    const { refetch: refetchTransactions } = useTransactionsQuery();
-    const { refetch: refetchBudget } = useBudgetQuery();
+    const { data: transactions = [], refetch: refetchTransactions } = useTransactionsQuery();
+    const { data: budget = null, refetch: refetchBudget } = useBudgetQuery();
 
     const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
     const [input, setInput] = useState("");
     const [sending, setSending] = useState(false);
+    const sendingRef = useRef(false);
 
     const sendMessage = async (text: string) => {
-        if (!text.trim() || sending || !user) return;
+        if (!text.trim() || sendingRef.current || !user) return;
         const userMsg: ChatMessage = {
             id: Date.now().toString(),
             role: "user",
@@ -67,11 +68,12 @@ export default function AssistantScreen() {
         setMessages((prev) => [...prev, userMsg]);
         setInput("");
         setSending(true);
+        sendingRef.current = true;
 
         try {
-            const [{ data: transactions = [] }, { data: budget = null }] =
-                await Promise.all([refetchTransactions(), refetchBudget()]);
-            const reply = await askAssistant(text, transactions, budget, currency);
+            const freshTransactions = transactions.length > 0 ? transactions : (await refetchTransactions()).data ?? [];
+            const freshBudget = budget ?? (await refetchBudget()).data ?? null;
+            const reply = await askAssistant(text, freshTransactions, freshBudget, currency);
             setMessages((prev) => [
                 ...prev,
                 { id: (Date.now() + 1).toString(), role: "assistant", content: reply },
@@ -88,6 +90,7 @@ export default function AssistantScreen() {
             ]);
         } finally {
             setSending(false);
+            sendingRef.current = false;
         }
     };
 
