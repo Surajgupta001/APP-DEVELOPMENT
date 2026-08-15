@@ -4,6 +4,7 @@ import { getCategoryConfig } from '../../constants/categories';
 import { formatPrice } from '../../lib/utils';
 import { Transaction } from '../../types';
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { useUserStore } from '../../store/userStore';
 
 const INPUT_METHOD_ICON: Record<Transaction['input_method'], keyof typeof Feather.glyphMap> = {
     MANUAL: 'edit-3',
@@ -20,6 +21,7 @@ export default function TransactionRow({ tx, onDelete }: TransactionRowProps) {
 
     const config = getCategoryConfig(tx.category);
     const isIncome = tx.type === 'INCOME';
+    const curreny = useUserStore((state) => state.currency);
 
     const row = (
         <View
@@ -65,7 +67,7 @@ export default function TransactionRow({ tx, onDelete }: TransactionRowProps) {
                     }`}
             >
                 {isIncome ? "+" : "-"}
-                {formatPrice(tx.amount)}
+                {formatPrice(tx.amount, curreny)}
             </Text>
         </View>
     );
