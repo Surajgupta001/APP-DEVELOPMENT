@@ -56,7 +56,7 @@ export const saveOnboardingAnswers = async <K extends keyof OnboardingValues>(fi
     }
 };
 
-export const isOnboardingComplete = (): boolean => {
+export const isOnboardingCompleted = (): boolean => {
     return onboardingValuesSchema.safeParse(answers).success;
 };
 
