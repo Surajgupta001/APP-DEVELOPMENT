@@ -1,10 +1,5 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { Redirect } from "expo-router";
 
 export default function Create() {
-    return (
-        <View>
-            <Text>create</Text>
-        </View>
-    )
+    return <Redirect href="/workout/create" />
 }

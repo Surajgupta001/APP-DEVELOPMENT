@@ -8,6 +8,9 @@
     "scheme": "aiworkouttracker",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow myworkouttracker to access your photos to upload images for your workouts."
+      },
       "icon": "./assets/expo.icon"
     },
     "android": {
@@ -34,7 +37,14 @@
           "imageWidth": 76
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow myworkouttracker to access your photos to upload images for your workouts.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

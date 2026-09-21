@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { appThemeColors, appThemes } from "@/theme/app-theme";
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { authClient } from "@/lib/auth-client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,7 +34,10 @@ const navigationTheme = {
 };
 
 export default function RootLayout() {
+
   const [appReady, setAppReady] = useState(false);
+
+  const [queryClient] = useState(() => new QueryClient());
 
   const [loaded, error] = useFonts({
     ...Feather.font,
@@ -67,37 +71,39 @@ export default function RootLayout() {
   }
 
   return (
-    <KeyboardProvider>
-      <ThemeProvider value={navigationTheme[scheme]}>
-        <View
-          style={[
-            appThemes[scheme],
-            {
-              backgroundColor,
-              flex: 1,
-            },
-          ]}
-        >
-          <StatusBar
-            key={scheme}
-            animated
-            style={scheme === "dark" ? "light" : "dark"}
-          />
-
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
+    <QueryClientProvider client={queryClient}>
+      <KeyboardProvider>
+        <ThemeProvider value={navigationTheme[scheme]}>
+          <View
+            style={[
+              appThemes[scheme],
+              {
+                backgroundColor,
+                flex: 1,
+              },
+            ]}
           >
-            <Stack.Protected guard={!session}>
-              <Stack.Screen name="(public)" />
-            </Stack.Protected>
-            <Stack.Protected guard={!!session}>
-              <Stack.Screen name="(app)" />
-            </Stack.Protected>
-          </Stack>
-        </View>
-      </ThemeProvider>
-    </KeyboardProvider>
+            <StatusBar
+              key={scheme}
+              animated
+              style={scheme === "dark" ? "light" : "dark"}
+            />
+
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Protected guard={!session}>
+                <Stack.Screen name="(public)" />
+              </Stack.Protected>
+              <Stack.Protected guard={!!session}>
+                <Stack.Screen name="(app)" />
+              </Stack.Protected>
+            </Stack>
+          </View>
+        </ThemeProvider>
+      </KeyboardProvider>
+    </QueryClientProvider>
   );
 }
