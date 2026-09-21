@@ -1,0 +1,1 @@
+ALTER TABLE "wokouts" ADD COLUMN "image" text;
