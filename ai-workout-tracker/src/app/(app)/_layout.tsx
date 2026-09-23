@@ -6,6 +6,7 @@ export default function AppLayout() {
             headerShown: false,
         }}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(modal)/workout" />
         </Stack>
     );
 }
