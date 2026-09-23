@@ -6,25 +6,56 @@ export type CreateWorkoutInput = {
     image?: string;
     exercises: {
         id: string;
-        reps?: number;
-        sets?: number;
-        rests?: number;
+        reps: number;
+        rest: number;
+        sets: number;
+        targetWeight?: number;
     }[];
 };
 
-export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
-    const response = await fetch(`${API_URL}/workouts`, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-            "Content-Type": "application/json",
-            cookie: authClient.getCookies(),
-        },
-    });
+export type ExerciseItem = {
+    category: string;
+    description: string;
+    difficulty: string;
+    equipment: string | null;
+    forceType: string | null;
+    id: string;
+    image: string | null;
+    mechanics: string | null;
+    muscles: string;
+    name: string;
+};
 
-    if (!response.ok) {
-        throw new Error(`Failed to create workout: ${response.statusText}`);
+export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
+    const { data: result, error } = await authClient.$fetch(
+        `${API_URL}/api/workouts`, {
+        method: "POST",
+        body: data,
+    },
+    );
+
+    if (error) {
+        console.error("Create workout error:", error);
+
+        throw new Error(error.message || "Could not create workout");
     }
 
-    return response.json();
-};
+    return result;
+}
+
+export async function getExercisesQueryFn(search?: string) {
+    const query = search ? `?search=${encodeURIComponent(search)}` : "";
+
+    const { data, error } = await authClient.$fetch<ExerciseItem[]>(
+        `${API_URL}/api/exercises${query}`, {
+        method: "GET",
+    });
+
+    if (error) {
+        console.error("Get exercises error:", error);
+
+        throw new Error(error.message || "Could not fetch exercises");
+    }
+
+    return data;
+}

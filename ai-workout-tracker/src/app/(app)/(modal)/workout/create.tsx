@@ -34,6 +34,19 @@ export default function CreateWorkout() {
 
     const [selectedExercises, setSelectedExercises] = useWorkoutDraft();
 
+    // The create screen is opened via `<Redirect>` from the `create` tab,
+    // which replaces history — so there is no screen to go `back()` to.
+    // Dismiss the modal stack and land on the workout list tab instead.
+    // (Plain `dismiss()` would reveal the `create` tab again, whose
+    // `<Redirect>` would instantly re-open this modal in a loop.)
+    const closeToWorkoutList = () => {
+        if (router.canDismiss()) {
+            router.dismissTo("/workout");
+        } else {
+            router.replace("/workout");
+        }
+    };
+
     const createMutation = useMutation({
         mutationFn: () => createWorkoutMutationFn({
             name: name,
@@ -42,14 +55,14 @@ export default function CreateWorkout() {
                 id: exercise.id,
                 reps: exercise.reps,
                 sets: exercise.sets,
-                rests: exercise.rest,
+                rest: exercise.rest,
             })),
             image: coverImage?.base64,
         }),
         onError: () => Alert.alert("Error", "Failed to create workout. Please try again."),
         onSuccess: () => {
             Alert.alert("Success", "Workout created successfully!");
-            router.push("/workout");
+            closeToWorkoutList();
         }
     });
 
@@ -75,7 +88,7 @@ export default function CreateWorkout() {
             exercises: selectedExercises,
             name,
         });
-        
+
         if (!result.success) {
             Alert.alert("Missing details", result.error.issues[0].message);
             return;
@@ -115,22 +128,22 @@ export default function CreateWorkout() {
         }
     }
 
-    const removeExercise = (id: string) => {
-        setSelectedExercises((prev) => prev.filter(({ id }) => id !== id));
+    const removeExercise = (exerciseId: string) => {
+        setSelectedExercises((prev) => prev.filter((exercise) => exercise.id !== exerciseId));
     };
 
     return (
         <SafeAreaScreen edges={["top", "bottom"]}>
             <KeyboardAwareScrollView
+                bottomOffset={27}
                 contentContainerClassName="flex-grow"
-                contentContainerStyle={{ paddingBottom: 27 }}
                 keyboardDismissMode="interactive"
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 <View className="flex-grow px-5 pt-3 pb-8">
                     <View className="flex-row items-center justify-between">
-                        <Pressable onPress={() => router.back()}>
+                        <Pressable onPress={closeToWorkoutList}>
                             <Text className="font-inter-medium text-[13px] text-destructive">
                                 Cancel
                             </Text>
@@ -139,35 +152,41 @@ export default function CreateWorkout() {
                             {" "}
                             Create Workout
                         </Text>
+
                         <Pressable onPress={saveWorkout}>
                             <Text className="font-inter-medium text-[13px] text-primary">
                                 Save
                             </Text>
                         </Pressable>
                     </View>
-                    <View className="mt-4 gap-5">
+
+                    <View className="gap-5 mt-4">
                         <Pressable
-                            className="h-44 items-center justify-center overflow-hidden rounded-xl border border-input-border bg-muted"
                             onPress={pickImage}
+                            className="items-center justify-center overflow-hidden border h-44 rounded-xl border-input-border bg-muted"
                         >
                             {coverImage ? (
-                                <Image source={{ uri: coverImage.uri }} className="size-full" />
+                                <Image
+                                    className="w-full h-full"
+                                    source={{ uri: coverImage.uri }}
+                                />
                             ) : (
                                 <>
-                                    <Feather color={muted} name="image" size={29} />
+                                    <Feather color={muted} name="image" size={28} />
                                     <Text className="mt-2 font-inter-medium text-[13px] text-muted-foreground">
                                         Choose Cover Image
                                     </Text>
                                 </>
                             )}
                             {coverImage && (
-                                <View className="absolute bottom-3 rounded-full bg-black/60 px-4 py-2">
+                                <View className="absolute px-4 py-2 rounded-full bottom-3 bg-black/60">
                                     <Text className="font-inter-semibold text-[12px] text-white">
                                         Change Image
                                     </Text>
                                 </View>
                             )}
                         </Pressable>
+
                         <View className="gap-2">
                             <Text className="font-inter-medium text-[14px] text-foreground">
                                 Workout Name
@@ -182,6 +201,7 @@ export default function CreateWorkout() {
                                 value={name}
                             />
                         </View>
+
                         <View className="gap-2">
                             <Text className="font-inter-medium text-[14px] text-foreground">
                                 Description (Optional)
@@ -198,80 +218,86 @@ export default function CreateWorkout() {
                                 textAlignVertical="top"
                             />
                         </View>
+
                         <View>
                             <Text className="font-inter-bold text-[16px] text-foreground">
                                 Exercises
                             </Text>
-                            <Text className="mb-3 mt-1 font-inter text-sm text-muted-foreground">
+                            <Text className="mt-1 mb-3 text-sm font-inter text-muted-foreground">
                                 {selectedExercises.length} exercises added
                             </Text>
+
                             {selectedExercises.map((exercise) => (
                                 <View
                                     key={exercise.id}
-                                    className="mb-3  rounded-xl border border-border bg-card p-3"
+                                    className="p-3 mb-3 border rounded-xl border-border bg-card"
                                 >
                                     <View className="flex-row items-center">
                                         {exercise.image ? (
                                             <Image
-                                                className="h-11 w-12 rounded-lg bg-muted"
+                                                className="w-12 rounded-lg h-11 bg-muted"
                                                 source={{ uri: exercise.image }}
                                             />
                                         ) : (
-                                            <View className="h-11 w-12 items-center justify-center rounded-lg bg-muted">
+                                            <View className="items-center justify-center w-12 rounded-lg h-11 bg-muted">
                                                 <Feather color={muted} name="image" size={17} />
                                             </View>
                                         )}
-                                        <View>
+
+                                        <View className="flex-1 ml-3 ">
                                             <Text className="font-inter-semibold text-[13px] text-foreground">
                                                 {exercise.name}
                                             </Text>
                                             <Text className="mt-1 font-inter capitalize text-[12px] text-muted-foreground">
                                                 {exercise.muscles}
                                             </Text>
-                                            <Pressable onPress={() => removeExercise(exercise.id)}>
-                                                <Feather color={muted} name="x" size={20} />
-                                            </Pressable>
                                         </View>
-                                        {(
-                                            [
-                                                ["Sets", "sets", exercise.sets, 1],
-                                                ["Reps", "reps", exercise.reps, 1],
-                                                ["Rest Time", "rest", `${exercise.rest} sec`, 15],
-                                            ] as const
-                                        ).map(([label, field, value, step]) => (
-                                            <View
-                                                key={field}
-                                                className="mt-3 flex-row items-center justify-between"
-                                            >
-                                                <Text className="font-inter text-[12px] text-muted-foreground">
-                                                    {label}
-                                                </Text>
-                                                <View className="flex-row items-center justify-center gap-3">
-                                                    <Pressable
-                                                        className="h-8 w-8 items-center justify-center rounded-lg bg-muted"
-                                                        onPress={() =>
-                                                            updateExercise(exercise.id, field, -step)
-                                                        }
-                                                    >
-                                                        <Feather color={muted} name="minus" size={15} />
-                                                    </Pressable>
-                                                    <Text className="w-14 text-center font-inter-semibold text-[12px] text-foreground">
-                                                        {value}
-                                                    </Text>
-                                                    <Pressable
-                                                        className="h-8 w-8 items-center justify-center rounded-lg bg-muted"
-                                                        onPress={() =>
-                                                            updateExercise(exercise.id, field, step)
-                                                        }
-                                                    >
-                                                        <Feather color={muted} name="plus" size={15} />
-                                                    </Pressable>
-                                                </View>
-                                            </View>
-                                        ))}
+                                        <Pressable onPress={() => removeExercise(exercise.id)}>
+                                            <Feather color={muted} name="x" size={20} />
+                                        </Pressable>
                                     </View>
+
+                                    {(
+                                        [
+                                            ["Sets", "sets", exercise.sets, 1],
+                                            ["Reps", "reps", exercise.reps, 1],
+                                            ["Rest Time", "rest", `${exercise.rest} sec`, 15],
+                                        ] as const
+                                    ).map(([label, field, value, step]) => (
+                                        <View
+                                            key={field}
+                                            className="flex-row items-center justify-between mt-3"
+                                        >
+                                            <Text className="font-inter text-[12px] text-muted-foreground">
+                                                {label}
+                                            </Text>
+
+                                            <View className="flex-row items-center justify-center gap-3">
+                                                <Pressable
+                                                    className="items-center justify-center w-8 h-8 rounded-lg bg-muted"
+                                                    onPress={() =>
+                                                        updateExercise(exercise.id, field, -step)
+                                                    }
+                                                >
+                                                    <Feather color={muted} name="minus" size={15} />
+                                                </Pressable>
+                                                <Text className="w-14 text-center font-inter-semibold text-[12px] text-foreground">
+                                                    {value}
+                                                </Text>
+                                                <Pressable
+                                                    className="items-center justify-center w-8 h-8 rounded-lg bg-muted"
+                                                    onPress={() =>
+                                                        updateExercise(exercise.id, field, step)
+                                                    }
+                                                >
+                                                    <Feather color={muted} name="plus" size={15} />
+                                                </Pressable>
+                                            </View>
+                                        </View>
+                                    ))}
                                 </View>
                             ))}
+
                             <Button
                                 leftIcon={<Feather color={primary} name="plus" size={18} />}
                                 onPress={() => router.push("/workout/exercises")}
@@ -285,10 +311,11 @@ export default function CreateWorkout() {
                 </View>
             </KeyboardAwareScrollView>
             <KeyboardToolbar />
+
             <LoadingModal
                 message="Saving workout.."
                 visible={createMutation.isPending}
             />
         </SafeAreaScreen>
-    )
+    );
 }
