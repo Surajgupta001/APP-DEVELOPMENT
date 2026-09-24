@@ -1,5 +1,0 @@
-import { Redirect } from "expo-router";
-
-export default function Create() {
-    return <Redirect href="/workout/create" />
-}
