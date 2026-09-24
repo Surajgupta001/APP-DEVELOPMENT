@@ -1,1 +1,0 @@
-ALTER TABLE "workout_session_sets" ALTER COLUMN "weight" SET DATA TYPE real USING "weight"::real;
