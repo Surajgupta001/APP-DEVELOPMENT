@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-export default function HistoryDetailModal() {
+export default function ActiveWorkoutModal() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const muted = useAppThemeColor("mutedForeground");
@@ -17,17 +17,17 @@ export default function HistoryDetailModal() {
                         className="items-center justify-center h-11 w-11"
                         onPress={router.back}
                     >
-                        <Feather name="arrow-left" size={23} color={muted} />
+                        <Feather name="x" size={23} color={muted} />
                     </Pressable>
                     <Text className="font-inter-bold text-[17px] text-foreground">
-                        Workout History
+                        Active Workout
                     </Text>
                     <View className="h-11 w-11" />
                 </View>
 
                 <View className="items-center justify-center flex-1">
                     <Text className="font-inter-medium text-[15px] text-muted-foreground">
-                        History ID: {id}
+                        Workout Session: {id}
                     </Text>
                 </View>
             </View>

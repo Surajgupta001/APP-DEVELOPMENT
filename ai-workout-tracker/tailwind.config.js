@@ -1,10 +1,47 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  // NOTE: Update this to include the paths to all files that contain Nativewind classes.
-  content: ["./App.tsx", "./components/**/*.{js,jsx,ts,tsx}"],
-  presets: [require("nativewind/preset")],
-  theme: {
-    extend: {},
+const color = (name) => `rgb(var(--color-${name}) / <alpha-value>)`;
+export const content = ["./src/**/*.{js,jsx,ts,tsx}"];
+export const presets = [require("nativewind/preset")];
+export const theme = {
+  extend: {
+    boxShadow: {
+      xs: "0 1px 1px rgb(0 0 0 / 0.01)",
+    },
+    colors: {
+      accent: color("accent"),
+      background: color("background"),
+      border: color("border"),
+      card: color("card"),
+      destructive: {
+        DEFAULT: color("destructive"),
+        foreground: color("destructive-foreground"),
+      },
+      foreground: color("foreground"),
+      input: color("input"),
+      "input-border": color("input-border"),
+      muted: {
+        DEFAULT: color("muted"),
+        foreground: color("muted-foreground"),
+      },
+      overlay: color("overlay"),
+      primary: {
+        DEFAULT: color("primary"),
+        foreground: color("primary-foreground"),
+        hover: color("primary-hover"),
+      },
+      ring: color("ring"),
+      secondary: {
+        DEFAULT: color("secondary"),
+        foreground: color("secondary-foreground"),
+      },
+      "tab-background": color("tab-background"),
+    },
+    fontFamily: {
+      inter: ["Inter_400Regular"],
+      "inter-bold": ["Inter_700Bold"],
+      "inter-medium": ["Inter_500Medium"],
+      "inter-semibold": ["Inter_600SemiBold"],
+    },
   },
-  plugins: [],
-}
+};
+export const plugins = [];
