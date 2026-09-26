@@ -5,7 +5,7 @@ import Button from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAppThemeColor } from "@/theme/app-theme";
 
-type EmtyStateProps = {
+type EmptyStateProps = {
     icon?: ComponentProps<typeof Feather>["name"];
     message: string;
     className?: string;
@@ -13,13 +13,13 @@ type EmtyStateProps = {
     retryLabel?: string;
 };
 
-export default function EmtyState({
+export default function EmptyState({
     icon = "wifi-off",
     message,
     className,
     onRetry,
     retryLabel = "Try Again",
-}: EmtyStateProps) {
+}: EmptyStateProps) {
     const mutedForeground = useAppThemeColor("mutedForeground");
 
     return (
