@@ -1,8 +1,9 @@
-import { db, exercises } from '@/database';
-import { auth } from '@/lib/auth';
-import { generateText, Output } from 'ai';
-import { eq } from 'drizzle-orm';
-import { z } from 'zod';
+import { db, exercises } from "@/database";
+import { auth } from "@/lib/auth";
+import { groq } from "@ai-sdk/groq";
+import { generateText, Output } from "ai";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 const idSchema = z.uuid();
 
@@ -10,9 +11,7 @@ const instructionOutputSchema = z.object({
     instructions: z
         .array(z.string())
         .min(1)
-        .describe(
-            'step-by-step instructions on how to perform the exercise safely and with proper form'
-        ),
+        .describe("step-by-step instructions on how to perform the exercise safely and with proper form"),
 });
 
 export async function GET(request: Request, { id }: Record<string, string>) {
@@ -22,17 +21,17 @@ export async function GET(request: Request, { id }: Record<string, string>) {
 
     if (!session) {
         return Response.json({
-            message: "Unauthorized"
+            message: "Unauthorized",
         }, {
-            status: 401
+            status: 401,
         });
-    };
+    }
 
     if (!idSchema.safeParse(id).success) {
         return Response.json({
-            message: "Invalid exercise ID"
+            message: "Invalid exercise ID",
         }, {
-            status: 400
+            status: 400,
         });
     }
 
@@ -42,36 +41,44 @@ export async function GET(request: Request, { id }: Record<string, string>) {
         .where(eq(exercises.id, id))
         .limit(1);
 
-
     if (!exercise) {
         return Response.json({
-            message: "Exercise not found"
+            message: "Exercise not found",
         }, {
-            status: 404
+            status: 404,
         });
     }
 
     try {
         const { output } = await generateText({
-            model: "llama-3.3-70b-versatile",
+            model: groq("openai/gpt-oss-20b"),
             output: Output.object({
-                schema: instructionOutputSchema
+                schema: instructionOutputSchema,
             }),
-            system: "You are an expert AI fitness coach. Generate 4 to 5 concise, actionable step-by-step instructions for performing the given exercise safely and with proper form.",
-            prompt: `Exercise: ${exercise.name}\nCategory: ${exercise.category}\nTarget Muscles: ${exercise.muscles}\nDescription: ${exercise.description}`
-
+            system:
+                "You are an expert AI fitness coach. Generate 4 to 5 concise, actionable step-by-step instructions for performing the given exercise safely and with proper form.",
+            prompt: `Exercise: ${exercise.name} Category: ${exercise.category} Target Muscles: ${exercise.muscles} Description: ${exercise.description}`,
         });
 
         if (output?.instructions && output.instructions.length > 0) {
             return Response.json({
-                instructions: output.instructions
+                instructions: output.instructions,
             });
         }
-    } catch (error) {
-        console.log('AI Generation failed', error);
-    }
 
-    return Response.json({
-        
-    })
-};
+        return Response.json({
+            message: "Failed to generate exercise instructions",
+        }, {
+            status: 500,
+        });
+
+    } catch (error) {
+        console.error("AI Generation failed:", error);
+
+        return Response.json({
+            message: "Failed to generate exercise instructions",
+        }, {
+            status: 500,
+        });
+    }
+}
