@@ -36,7 +36,7 @@ export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
             },
         },
     );
-    
+
     if (error) throw new Error("Could not create workout");
 
     return result;
@@ -50,7 +50,7 @@ export async function getExercisesQueryFn(search?: string) {
             method: "GET",
         },
     );
-    
+
     if (error) throw new Error("Could not fetch exercises");
 
     return data;
@@ -65,12 +65,12 @@ export async function getExerciseQueryFn(id: string) {
     );
 
     if (error) throw new Error("Could not fetch exercise");
-    
+
     return data;
 };
 
 export async function getExerciseInstructionsQueryFn(id: string) {
-    const { data, error } = await authClient.$fetch<{ instructions: string }>(
+    const { data, error } = await authClient.$fetch<{ instructions: string[] }>(
         `${API_URL}/api/exercises/${id}/instructions`,
         {
             method: "GET",
