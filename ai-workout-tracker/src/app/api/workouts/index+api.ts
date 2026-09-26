@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     if (!session) {
         return Response.json({ message: "Unauthorized" }, { status: 401 });
     }
+
     const limitVal = new URL(request.url).searchParams.get("limit");
 
     const limit = limitVal
@@ -36,12 +37,11 @@ export async function GET(request: Request) {
         : null;
 
     if (limit && !limit.success) {
-        return Response.json(
-            {
-                message: "Invalid limit",
-            },
-            { status: 400 },
-        );
+        return Response.json({
+            message: "Invalid limit",
+        }, {
+            status: 400
+        });
     }
 
     const query = db
@@ -65,26 +65,30 @@ export async function GET(request: Request) {
     const data = limit?.success ? await query.limit(limit.data) : await query;
 
     return Response.json(data);
-}
+};
+
 export async function POST(request: Request) {
     const body = await request.json();
+
     const session = await auth.api.getSession({
         headers: request.headers,
     });
-    if (!session)
-        return Response.json({ message: "Unauthorized" }, { status: 401 });
+
+    if (!session) return Response.json({ message: "Unauthorized" }, { status: 401 });
 
     const result = workoutSchema.safeParse(body);
+    
     if (!result.success) {
         return Response.json(
             { message: "Invalid data", error: result.error },
             { status: 400 },
         );
     }
+    
     const { description, exercises, image, name } = result.data;
 
-    const hasDuplicateExercise =
-        new Set(exercises.map(({ id }) => id)).size !== exercises.length;
+    const hasDuplicateExercise = new Set(exercises.map(({ id }) => id)).size !== exercises.length;
+    
     if (hasDuplicateExercise) {
         return Response.json({ message: "Duplicate Exercise" }, { status: 400 });
     }
@@ -95,6 +99,7 @@ export async function POST(request: Request) {
         : null;
 
     const workoutId = crypto.randomUUID();
+    
     const created = await db.transaction(async (tx) => {
         const [insertedWorkout] = await tx
             .insert(workouts)
@@ -123,4 +128,5 @@ export async function POST(request: Request) {
     });
 
     return Response.json(created, { status: 201 });
-}
+};
+
