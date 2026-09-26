@@ -6,8 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getWorkoutsQueryFn } from '@/lib/api';
 import SafeAreaScreen from '@/components/ui/safe-area-screen';
 import Skeleton from '@/components/ui/skeleton';
-import EmtyState from '@/components/ui/empty-state';
 import { Feather } from '@expo/vector-icons';
+import EmptyState from '@/components/ui/empty-state';
 
 export default function Workouts() {
     const router = useRouter();
@@ -41,9 +41,9 @@ export default function Workouts() {
                             ))}
                         </View>
                     ) : isError ? (
-                        <EmtyState message="Could not load workouts" onRetry={refetch} />
+                        <EmptyState message="Could not load workouts" onRetry={refetch} />
                     ) : (
-                        <EmtyState icon="activity" message="No workouts found" />
+                        <EmptyState icon="activity" message="No workouts found" />
                     )
                 }
                 ListHeaderComponent={

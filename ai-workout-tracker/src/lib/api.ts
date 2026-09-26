@@ -32,7 +32,27 @@ export type workoutListItem = {
     muscles: string;
     name: string;
     totalSets: number;
+};
+
+export type workoutExercise = {
+    id: string;
+    image: string | null;
+    muscles: string;
+    name: string;
+    targetWeight: number | null;
+    reps?: number;
+    rest?: number;
+    sets?: number;
 }
+
+export type workoutDetail = {
+    description: string | null;
+    exercises: workoutExercise[];
+    id: string;
+    image: string | null;
+    name: string;
+    muscles: string;
+};
 
 export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
     const { data: result, error } = await authClient.$fetch(
@@ -94,6 +114,18 @@ export async function getWorkoutsQueryFn(limit?: number) {
     });
 
     if (error) throw new Error("Could not fetch workouts");
+
+    return data;
+};
+
+export async function getWorkoutQueryFn(id: string) {
+    const { data, error } = await authClient.$fetch<workoutDetail>(
+        `${API_URL}/api/workouts/${id}`, {
+            method: "GET",
+        },
+    );
+
+    if (error) throw new Error("Could not fetch workout");
 
     return data;
 };
