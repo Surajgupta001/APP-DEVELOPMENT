@@ -12,6 +12,34 @@ async function seed() {
 
     const { db } = await import("../index");
     const { exercises } = await import("../schema");
+    const { user } = await import("../auth-schema");
+
+    let [existingUser] = await db
+        .select({ id: user.id })
+        .from(user)
+        .limit(1);
+
+    if (!existingUser) {
+        const [newUser] = await db
+            .insert(user)
+            .values({
+                id: "seed-user",
+                name: "Seed User",
+                email: "seed@example.com",
+                emailVerified: true,
+            })
+            .onConflictDoNothing()
+            .returning({ id: user.id });
+        existingUser = newUser ?? (await db.select({ id: user.id }).from(user).limit(1))[0];
+    }
+
+    if (!existingUser) {
+        throw new Error(
+            "No users found in the database and none could be created.",
+        );
+    }
+
+    const userId = existingUser.id;
     const response = await fetch(EXERCISE_DATA_URL);
     if (!response.ok) throw new Error("Could not download exercise data");
 
@@ -19,14 +47,13 @@ async function seed() {
         ({ name }) => selectedNames.has(name),
     );
 
-    if (source.length !== 20)
-        throw new Error(`Found ${source.length}/20 exercises`);
+    if (source.length !== 20) throw new Error(`Found ${source.length}/20 exercises`);
 
     const values = source.map((exercise) => ({
         slug: exercise.id.replaceAll("_", "-").toLowerCase(),
         name: exercise.name,
         // pick a user id or remove it from the exercise table
-        userId: "<pick_a_user_id>",
+        userId,
         image: exercise.images[0]
             ? `${EXERCISE_IMAGE_URL}/${exercise.images[0]}`
             : null,
