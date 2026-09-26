@@ -25,10 +25,18 @@ export type ExerciseItem = {
     name: string;
 };
 
+export type workoutListItem = {
+    exerciseCount: number;
+    id: string;
+    image: string | null;
+    muscles: string;
+    name: string;
+    totalSets: number;
+}
+
 export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
     const { data: result, error } = await authClient.$fetch(
-        `${API_URL}/api/workouts`,
-        {
+        `${API_URL}/api/workouts`, {
             method: "POST",
             body: JSON.stringify(data),
             headers: {
@@ -45,8 +53,7 @@ export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
 export async function getExercisesQueryFn(search?: string) {
     const query = search ? `?search=${encodeURIComponent(search)}` : "";
     const { data, error } = await authClient.$fetch<ExerciseItem[]>(
-        `${API_URL}/api/exercises${query}`,
-        {
+        `${API_URL}/api/exercises${query}`, {
             method: "GET",
         },
     );
@@ -58,8 +65,7 @@ export async function getExercisesQueryFn(search?: string) {
 
 export async function getExerciseQueryFn(id: string) {
     const { data, error } = await authClient.$fetch<ExerciseItem>(
-        `${API_URL}/api/exercises/${id}`,
-        {
+        `${API_URL}/api/exercises/${id}`, {
             method: "GET",
         },
     );
@@ -71,13 +77,23 @@ export async function getExerciseQueryFn(id: string) {
 
 export async function getExerciseInstructionsQueryFn(id: string) {
     const { data, error } = await authClient.$fetch<{ instructions: string[] }>(
-        `${API_URL}/api/exercises/${id}/instructions`,
-        {
+        `${API_URL}/api/exercises/${id}/instructions`, {
             method: "GET",
         },
     );
 
     if (error) throw new Error("Could not fetch exercise instructions");
+
+    return data;
+};
+
+export async function getWorkoutsQueryFn(limit?: number) {
+    const { data, error } = await authClient.$fetch<workoutListItem[]>(
+        `${API_URL}/api/workouts${limit ? `?limit=${limit}` : ""}`, {
+        method: "GET",
+    });
+
+    if (error) throw new Error("Could not fetch workouts");
 
     return data;
 };
