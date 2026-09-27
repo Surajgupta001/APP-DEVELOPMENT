@@ -1,8 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import StreakBottomSheet from "@/components/home/streak-bottom-sheet";
-import { getStreakQueryFn } from "@/lib/api";
 import { getStreakSummary } from "@/lib/streak";
+import { useStreakQuery } from "@/hooks/queries";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 type StreakContextValue = {
     currentStreak: number;
@@ -13,10 +12,7 @@ const StreakContext = createContext<StreakContextValue | null>(null);
 
 export function StreakProvider({ children }: React.PropsWithChildren) {
     const [visible, setVisible] = useState(false);
-    const { data } = useQuery({
-        queryKey: ["streak"],
-        queryFn: getStreakQueryFn,
-    });
+    const { data } = useStreakQuery();
 
     const streak = useMemo(
         () =>

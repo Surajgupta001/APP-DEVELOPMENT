@@ -7,7 +7,6 @@ import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import { AuthSession } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import { useAppThemeColor } from "@/theme/app-theme";
-import { useRouter } from "../../../../.expo/types/router";
 
 const LEGAL_ORIGIN = "https://techwithemma.com";
 const PRIVACY_URL = `${LEGAL_ORIGIN}/`;

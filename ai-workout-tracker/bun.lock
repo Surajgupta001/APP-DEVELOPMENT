@@ -6,7 +6,6 @@
       "name": "ai-workout-tracker",
       "dependencies": {
         "@ai-sdk/groq": "^4.0.48",
-        "@better-auth/drizzle-adapter": "^1.7.5",
         "@better-auth/expo": "^1.7.5",
         "@expo-google-fonts/inter": "^0.4.2",
         "@expo/ui": "~57.0.20",

@@ -1,10 +1,9 @@
 import { Feather } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
 import EmptyState from "@/components/ui/empty-state";
 import Skeleton from "@/components/ui/skeleton";
-import { getHistoryQueryFn } from "@/lib/api";
+import { useHistoryQuery } from "@/hooks/queries";
 import { formatDuration, formatSessionDate } from "@/lib/format";
 import { useAppThemeColor } from "@/theme/app-theme";
 import HomeSectionHeader from "./home-section-header";
@@ -12,10 +11,7 @@ import HomeSectionHeader from "./home-section-header";
 export default function RecentWorkout() {
     const router = useRouter();
     const muted = useAppThemeColor("mutedForeground");
-    const { data, isPending } = useQuery({
-        queryKey: ["history", 1],
-        queryFn: () => getHistoryQueryFn(1),
-    });
+    const { data, isPending } = useHistoryQuery(1);
     const recent = data?.[0];
 
     return (

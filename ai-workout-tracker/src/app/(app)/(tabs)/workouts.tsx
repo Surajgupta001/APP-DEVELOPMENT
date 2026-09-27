@@ -2,8 +2,7 @@ import { View, Text, FlatList, TextInput, TouchableOpacity, Image, RefreshContro
 import { useState } from 'react'
 import { useRouter } from 'expo-router';
 import { useAppThemeColor } from '@/theme/app-theme';
-import { useQuery } from '@tanstack/react-query';
-import { getWorkoutsQueryFn } from '@/lib/api';
+import { useWorkoutsQuery } from '@/hooks/queries';
 import SafeAreaScreen from '@/components/ui/safe-area-screen';
 import Skeleton from '@/components/ui/skeleton';
 import { Feather } from '@expo/vector-icons';
@@ -21,10 +20,7 @@ export default function Workouts() {
         isPending,
         isRefetching,
         refetch,
-    } = useQuery({
-        queryFn: () => getWorkoutsQueryFn(),
-        queryKey: ["workouts"],
-    });
+    } = useWorkoutsQuery();
 
     return (
         <SafeAreaScreen edges={["top", "bottom"]}>
@@ -117,7 +113,7 @@ export default function Workouts() {
                         tintColor={primary}
                         colors={[primary]}
                         refreshing={isRefetching}
-                        onRefresh={() => refetch}
+                        onRefresh={refetch}
                     />
                 }
 

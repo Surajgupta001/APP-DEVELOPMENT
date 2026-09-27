@@ -4,8 +4,6 @@ import { differenceInCalendarDays } from "date-fns";
 import { and, eq, gte, lt } from "drizzle-orm";
 import { z } from "zod";
 
-const MAX_RANGE_MS = 22 * 24 * 60 * 60 * 1000;
-
 const rangeDateSchema = z
     .object({
         end: z.iso.datetime(),

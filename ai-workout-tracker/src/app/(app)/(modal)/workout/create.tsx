@@ -2,10 +2,9 @@ import LoadingModal from "@/components/loading-modal";
 import Button from "@/components/ui/button";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import { useWorkoutDraft } from "@/contexts/workout-draft-context";
-import { createWorkoutMutationFn } from "@/lib/api";
+import { useCreateWorkoutMutation } from "@/hooks/mutations";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -42,25 +41,7 @@ const CreateWorkout = () => {
 
     const [selectedExercises, setSelectedExercises] = useWorkoutDraft();
 
-    const createMutation = useMutation({
-        mutationFn: () =>
-            createWorkoutMutationFn({
-                name: name,
-                description: description || "",
-                exercises: selectedExercises.map((exercise) => ({
-                    id: exercise.id,
-                    reps: exercise.reps,
-                    sets: exercise.sets,
-                    rest: exercise.rest,
-                })),
-                image: coverImage?.base64,
-            }),
-        onError: () => Alert.alert("Could not create workout", "Please try again"),
-        onSuccess: () => {
-            //
-            router.push("/workouts");
-        },
-    });
+    const createMutation = useCreateWorkoutMutation();
 
     const updateExercise = (
         id: string,
@@ -88,7 +69,23 @@ const CreateWorkout = () => {
             Alert.alert("Missing details", result.error.issues[0].message);
             return;
         }
-        createMutation.mutate();
+        createMutation.mutate(
+            {
+                name,
+                description: description || "",
+                exercises: selectedExercises.map((exercise) => ({
+                    id: exercise.id,
+                    reps: exercise.reps,
+                    sets: exercise.sets,
+                    rest: exercise.rest,
+                })),
+                image: coverImage?.base64,
+            },
+            {
+                onError: () => Alert.alert("Could not create workout", "Please try again"),
+                onSuccess: () => router.push("/workouts"),
+            },
+        );
     };
 
     const pickImage = async () => {
@@ -138,7 +135,10 @@ const CreateWorkout = () => {
                 >
                     <View className="flex-grow px-5 pt-3 pb-8">
                     <View className="flex-row items-center justify-between">
-                        <Pressable onPress={() => router.back()}>
+                        <Pressable
+                            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+                            onPress={() => router.back()}
+                        >
                             <Text className="font-inter-medium text-[13px] text-destructive">
                                 Cancel
                             </Text>
@@ -148,7 +148,10 @@ const CreateWorkout = () => {
                             Create Workout
                         </Text>
 
-                        <Pressable onPress={saveWorkout}>
+                        <Pressable
+                            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+                            onPress={saveWorkout}
+                        >
                             <Text className="font-inter-medium text-[13px] text-primary">
                                 Save
                             </Text>

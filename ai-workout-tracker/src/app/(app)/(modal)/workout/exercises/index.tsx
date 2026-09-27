@@ -3,10 +3,10 @@ import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import Skeleton from "@/components/ui/skeleton";
 import { useWorkoutDraft } from "@/contexts/workout-draft-context";
 import { useDebounce } from "@/hooks/use-debounce";
-import { ExerciseItem, getExercisesQueryFn } from "@/lib/api";
+import { useExercisesQuery } from "@/hooks/queries";
+import { ExerciseItem } from "@/types";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -36,10 +36,7 @@ const Index = () => {
         isPending,
         isRefetching,
         refetch,
-    } = useQuery({
-        queryKey: ["exercises", search],
-        queryFn: () => getExercisesQueryFn(search),
-    });
+    } = useExercisesQuery(search);
 
     const toggleExecrise = (exercise: ExerciseItem) => {
         setSelectedExercises((prev) =>
@@ -115,7 +112,7 @@ const Index = () => {
                                 className="items-center justify-center h-11 w-11"
                                 onPress={router.back}
                             >
-                                <Text className="ont-inter-bold text-[13px] text-primary">
+                                <Text className="font-inter-bold text-[13px] text-primary">
                                     Done
                                 </Text>
                             </Pressable>

@@ -2,6 +2,9 @@ import { db } from "@/database";
 import { exercises } from "@/database/schema";
 import { auth } from "@/lib/auth";
 import { ilike, or } from "drizzle-orm";
+import { z } from "zod";
+
+const searchSchema = z.string().trim().min(1).max(100);
 
 export async function GET(request: Request) {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -9,7 +12,17 @@ export async function GET(request: Request) {
         return Response.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const search = new URL(request.url).searchParams.get("search")?.trim();
+    const rawSearch = new URL(request.url).searchParams.get("search")?.trim();
+    const validatedSearch = rawSearch ? searchSchema.safeParse(rawSearch) : null;
+
+    if (validatedSearch && !validatedSearch.success) {
+        return Response.json({ message: "Invalid search" }, { status: 400 });
+    }
+
+    // Escape LIKE wildcards so user input cannot inject % or _ patterns.
+    const search = validatedSearch?.success
+        ? validatedSearch.data.replace(/[%_]/g, (char) => `\\${char}`)
+        : null;
 
     const query = db
         .select({

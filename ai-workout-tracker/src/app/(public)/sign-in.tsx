@@ -68,7 +68,23 @@ const SignIn = () => {
                 password,
             });
             if (error) {
-                Alert.alert("Could not create account", error.message);
+                // Account exists but the email isn't verified yet — offer the OTP flow.
+                if (error.message?.toLowerCase().includes("not verified")) {
+                    const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
+                        email,
+                        type: "email-verification",
+                    });
+                    if (otpError) {
+                        Alert.alert("Could not sign in", error.message);
+                        return;
+                    }
+                    router.replace({
+                        pathname: "/verify-email",
+                        params: { email },
+                    });
+                    return;
+                }
+                Alert.alert("Could not sign in", error.message);
                 return;
             }
         } finally {
@@ -263,7 +279,7 @@ const SignIn = () => {
                                     <FontAwesome color={foreground} name="apple" size={22} />
                                 </View>
                             }
-                            onPress={() => alert("Apple Comming Soon")}
+                            onPress={() => Alert.alert("Coming soon", "Apple sign-in is coming soon")}
                         >
                             Continue with Apple
                         </Button>

@@ -1,7 +1,7 @@
 import { View, Text, FlatList, Pressable, Image } from 'react-native'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query';
-import { getHistoryQueryFn, HistorySessionItem } from '@/lib/api';
+import { useHistoryQuery } from '@/hooks/queries';
+import { HistorySessionItem } from '@/types';
 import { useRouter } from 'expo-router';
 import { isSameDay, startOfDay } from 'date-fns';
 import SafeAreaScreen from '@/components/ui/safe-area-screen';
@@ -23,10 +23,7 @@ export default function History() {
         isError,
         isPending,
         refetch,
-    } = useQuery({
-        queryKey: ["history"],
-        queryFn: () => getHistoryQueryFn(),
-    });
+    } = useHistoryQuery();
 
     const filtered = selectedDate ? data.filter((item) => isSameDay(new Date(item.completedAt), selectedDate)) : data;
 

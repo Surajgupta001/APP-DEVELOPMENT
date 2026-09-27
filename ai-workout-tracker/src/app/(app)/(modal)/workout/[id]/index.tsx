@@ -2,10 +2,9 @@ import Button from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import Skeleton from "@/components/ui/skeleton";
-import { getWorkoutQueryFn } from "@/lib/api";
+import { useWorkoutQuery } from "@/hooks/queries";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Text } from "react-native";
 import { View } from "react-native";
@@ -23,11 +22,7 @@ export default function Index() {
         isError,
         isPending,
         refetch,
-    } = useQuery({
-        queryKey: ["workout", id],
-        queryFn: () => getWorkoutQueryFn(id),
-        enabled: Boolean(id),
-    });
+    } = useWorkoutQuery(id);
 
     const exercises = workout?.exercises ?? [];
     const totalSets = exercises.reduce((sum, exercise) => sum + (exercise.sets ?? 0), 0);

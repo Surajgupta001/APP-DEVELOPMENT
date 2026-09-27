@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useStreak } from "@/contexts/streak-context";
+import { useHomeStatsQuery, useWorkoutCalendarDatesQuery } from "@/hooks/queries";
 import { addWeeks, startOfDay, startOfWeek, subWeeks } from "date-fns";
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -8,8 +9,6 @@ import RecentWorkout from "@/components/home/recent-workout";
 import WorkoutTemplates from "@/components/home/workout-templates";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import WeekCalendar from "@/components/week-calendar";
-import { useStreak } from "@/contexts/streak-context";
-import { getHomeStatsQueryFn, getWorkoutCalendarDatesQueryFn } from "@/lib/api";
 
 const logo = require("../../../../assets/images/app-images/logo.png");
 const streakIcon = require("../../../../assets/images/app-images/streak-icon.png");
@@ -23,19 +22,9 @@ export default function HomePage() {
     const calendarStart = subWeeks(currentWeekStart, 2);
     const calendarEnd = addWeeks(currentWeekStart, 1);
 
-    const { data: stats, isPending } = useQuery({
-        queryKey: ["home-stats", selectedDate],
-        queryFn: () => getHomeStatsQueryFn(selectedDate),
-    });
-    
-    const { data } = useQuery({
-        queryKey: [
-            "workout-calendar",
-            calendarStart.toISOString(),
-            calendarEnd.toISOString(),
-        ],
-        queryFn: () => getWorkoutCalendarDatesQueryFn(calendarStart, calendarEnd),
-    });
+    const { data: stats, isPending } = useHomeStatsQuery(selectedDate);
+
+    const { data } = useWorkoutCalendarDatesQuery(calendarStart, calendarEnd);
 
     const workoutDates = data?.workoutDates
         ? data.workoutDates.map((dateStr) => new Date(dateStr))
