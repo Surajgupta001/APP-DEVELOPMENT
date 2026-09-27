@@ -250,38 +250,34 @@ const SignIn = () => {
                         <Button
                             variant="outline"
                             disabled={isGoogleLoading || isPending}
-                            leftIcon={
-                                <View className="absolute w-5 h-5 left-5">
+                            onPress={handleGoogleSignUp}
+                        >
+                            <View className="w-full flex-row items-center gap-3 px-1">
+                                {isGoogleLoading ? (
+                                    <ActivityIndicator color={foreground} />
+                                ) : (
                                     <Image
                                         className="w-5 h-5"
                                         resizeMode="contain"
                                         source={googleLogo}
                                     />
-                                </View>
-                            }
-                            rightIcon={
-                                isGoogleLoading && (
-                                    <ActivityIndicator
-                                        className="absolute right-5"
-                                        color={foreground}
-                                    />
-                                )
-                            }
-                            onPress={handleGoogleSignUp}
-                        >
-                            Continue with Google
+                                )}
+                                <Text className="flex-1 text-center font-inter-semibold text-[15px] text-foreground">
+                                    Continue with Google
+                                </Text>
+                            </View>
                         </Button>
                         <Button
                             variant="outline"
                             disabled={isGoogleLoading || isPending}
-                            leftIcon={
-                                <View className="absolute w-5 h-6 left-5">
-                                    <FontAwesome color={foreground} name="apple" size={22} />
-                                </View>
-                            }
                             onPress={() => Alert.alert("Coming soon", "Apple sign-in is coming soon")}
                         >
-                            Continue with Apple
+                            <View className="w-full flex-row items-center gap-3 px-1">
+                                <FontAwesome color={foreground} name="apple" size={20} />
+                                <Text className="flex-1 text-center font-inter-semibold text-[15px] text-foreground">
+                                    Continue with Apple
+                                </Text>
+                            </View>
                         </Button>
                     </View>
 

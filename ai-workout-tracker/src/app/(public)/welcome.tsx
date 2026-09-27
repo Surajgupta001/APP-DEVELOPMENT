@@ -20,7 +20,7 @@ const Welcome = () => {
                     contentContainerClassName="flex-grow px-5 pb-4 pt-2"
                     showsVerticalScrollIndicator={false}
                 >
-                    <View className="items-center">
+                    <View className="items-start">
                         <View className="h-20 overflow-hidden w-36">
                             <Image className="size-full" resizeMode="cover" source={logo} />
                         </View>
@@ -56,19 +56,17 @@ const Welcome = () => {
                         }}
                         asChild
                     >
-                        <Button
-                            className="mt-6"
-                            rightIcon={
-                                <View className="absolute right-5">
-                                    <Feather
-                                        color={primaryForeground}
-                                        name="arrow-right"
-                                        size={23}
-                                    />
-                                </View>
-                            }
-                        >
-                            Get Started
+                        <Button className="mt-6 h-14">
+                            <View className="w-full flex-row items-center justify-between px-1">
+                                <Text className="font-inter-semibold text-[15px] text-primary-foreground">
+                                    Get Started
+                                </Text>
+                                <Feather
+                                    color={primaryForeground}
+                                    name="arrow-right"
+                                    size={22}
+                                />
+                            </View>
                         </Button>
                     </Link>
 

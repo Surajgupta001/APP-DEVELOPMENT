@@ -129,6 +129,7 @@ const CreateWorkout = () => {
                 className="flex-1"
             >
                 <ScrollView
+                    className="flex-1"
                     contentContainerClassName="flex-grow"
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -136,26 +137,16 @@ const CreateWorkout = () => {
                     <View className="flex-grow px-5 pt-3 pb-8">
                     <View className="flex-row items-center justify-between">
                         <Pressable
-                            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+                            className="items-center justify-center w-9 h-9 rounded-full bg-muted active:opacity-70"
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             onPress={() => router.back()}
                         >
-                            <Text className="font-inter-medium text-[13px] text-destructive">
-                                Cancel
-                            </Text>
+                            <Feather color={muted} name="chevron-left" size={22} />
                         </Pressable>
                         <Text className="font-inter-bold text-[16px] text-foreground">
-                            {" "}
                             Create Workout
                         </Text>
-
-                        <Pressable
-                            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
-                            onPress={saveWorkout}
-                        >
-                            <Text className="font-inter-medium text-[13px] text-primary">
-                                Save
-                            </Text>
-                        </Pressable>
+                        <View className="w-9 h-9" />
                     </View>
 
                     <View className="gap-5 mt-4">
@@ -308,6 +299,25 @@ const CreateWorkout = () => {
                     </View>
                 </View>
                 </ScrollView>
+
+                <View className="flex-row gap-3 px-5 pb-3 pt-3 border-t border-border bg-background">
+                    <Button
+                        className="flex-1"
+                        onPress={() => router.back()}
+                        size="default"
+                        variant="outline"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="flex-1"
+                        isLoading={createMutation.isPending}
+                        onPress={saveWorkout}
+                        size="default"
+                    >
+                        Save Workout
+                    </Button>
+                </View>
             </KeyboardAvoidingView>
 
             <LoadingModal
