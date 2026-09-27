@@ -2,6 +2,7 @@ import Button from "@/components/ui/button";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import { isOnboardingCompleted } from "@/constants/onboarding";
 import { authClient } from "@/lib/auth-client";
+import { setOtpLoginPending } from "@/lib/otp-gate";
 import {
     SignInFormValues,
     signInSchema,
@@ -62,12 +63,16 @@ const SignIn = () => {
 
     const onSubmit = handleSubmit(async ({ email, password }) => {
         setIsPending(true);
+        // Raise the OTP gate before signIn.email runs so the session it
+        // creates never flips the root route guard to (app) mid-flow.
+        setOtpLoginPending(true);
         try {
             const { error } = await authClient.signIn.email({
                 email,
                 password,
             });
             if (error) {
+                setOtpLoginPending(false);
                 // Account exists but the email isn't verified yet — offer the OTP flow.
                 if (error.message?.toLowerCase().includes("not verified")) {
                     const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
@@ -80,13 +85,35 @@ const SignIn = () => {
                     }
                     router.replace({
                         pathname: "/verify-email",
-                        params: { email },
+                        params: { email, mode: "email-verification" },
                     });
                     return;
                 }
                 Alert.alert("Could not sign in", error.message);
                 return;
             }
+
+            // Password is correct — require a second 6-digit OTP before entering the app.
+            // signIn.email already created a session, but the OTP gate keeps the guard on
+            // (public); drop the session so a cancelled OTP never leaves a live session.
+            await authClient.signOut();
+
+            const { error: loginOtpError } = await authClient.emailOtp.sendVerificationOtp({
+                email,
+                type: "sign-in",
+            });
+            if (loginOtpError) {
+                setOtpLoginPending(false);
+                Alert.alert(
+                    "Could not send verification code",
+                    loginOtpError.message || "Please try again later.",
+                );
+                return;
+            }
+            router.replace({
+                pathname: "/verify-email",
+                params: { email, mode: "sign-in" },
+            });
         } finally {
             setIsPending(false);
         }

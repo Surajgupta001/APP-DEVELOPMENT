@@ -141,8 +141,18 @@ export const auth = betterAuth({
                     if (!process.env.RESEND_API_KEY) {
                         console.log(`[auth] Verification code for ${email}: ${otp}`);
                     }
+                } else if (type === "sign-in") {
+                    await sendEmail({
+                        to: email,
+                        subject: "Your MyWorkout sign-in code",
+                        html: buildVerificationOtpHtml(otp),
+                    });
+
+                    if (!process.env.RESEND_API_KEY) {
+                        console.log(`[auth] Sign-in code for ${email}: ${otp}`);
+                    }
                 } else {
-                    // Other OTP types (sign-in, forget-password) are not used yet.
+                    // Other OTP types (forget-password) are not used yet.
                     console.log(`[auth] OTP (${type}) for ${email}: ${otp}`);
                 }
             },

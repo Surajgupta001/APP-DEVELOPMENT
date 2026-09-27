@@ -1,6 +1,7 @@
 import "../../global.css";
 import { getStatusBarStyle } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
+import { useOtpLoginPending } from "@/lib/otp-gate";
 import { appThemeColors, appThemes } from "@/theme/app-theme";
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from "@expo-google-fonts/inter";
 import { Feather, FontAwesome, FontAwesome6 } from "@expo/vector-icons";
@@ -52,6 +53,10 @@ export default function RootLayout() {
   const statusBarStyle = getStatusBarStyle(pathname, scheme);
 
   const { data: session, isPending } = authClient.useSession();
+  // While a login OTP is being verified, ignore the session so the guard
+  // stays on (public) and the app screen never flashes.
+  const otpLoginPending = useOtpLoginPending();
+  const isSignedIn = !!session && !otpLoginPending;
 
   // check if font is loaded properly
   const fontReady = loaded || !!error;
@@ -86,10 +91,10 @@ export default function RootLayout() {
               ...(Platform.OS === "android" && { statusBarStyle }),
             }}
           >
-            <Stack.Protected guard={!session}>
+            <Stack.Protected guard={!isSignedIn}>
               <Stack.Screen name="(public)" />
             </Stack.Protected>
-            <Stack.Protected guard={!!session}>
+            <Stack.Protected guard={isSignedIn}>
               <Stack.Screen name="(app)" />
             </Stack.Protected>
           </Stack>

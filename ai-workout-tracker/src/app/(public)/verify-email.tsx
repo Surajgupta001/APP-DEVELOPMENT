@@ -1,6 +1,7 @@
 import Button from "@/components/ui/button";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import { authClient } from "@/lib/auth-client";
+import { setOtpLoginPending } from "@/lib/otp-gate";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -19,7 +20,11 @@ const RESEND_COOLDOWN_SECONDS = 45;
 
 const VerifyEmail = () => {
     const router = useRouter();
-    const { email } = useLocalSearchParams<{ email: string }>();
+    const { email, mode } = useLocalSearchParams<{
+        email: string;
+        mode?: "email-verification" | "sign-in";
+    }>();
+    const isSignInOtp = mode === "sign-in";
 
     const primary = useAppThemeColor("primary");
     const foreground = useAppThemeColor("foreground");
@@ -57,6 +62,29 @@ const VerifyEmail = () => {
         setIsVerifying(true);
         setErrorMessage(null);
         try {
+            if (isSignInOtp) {
+                // Sign-in OTP: verifies the code and signs the user in.
+                const { error: signInError } = await authClient.signIn.emailOtp({
+                    email,
+                    otp,
+                });
+
+                if (signInError) {
+                    setErrorMessage(
+                        signInError.message || "Invalid or expired code.",
+                    );
+                    setDigits(Array(OTP_LENGTH).fill(""));
+                    inputRefs.current[0]?.focus();
+                    return;
+                }
+
+                // Code accepted and signed in — release the OTP gate so the
+                // route guard lets (app) mount.
+                setOtpLoginPending(false);
+                router.replace("/");
+                return;
+            }
+
             const { error } = await authClient.emailOtp.verifyEmail({
                 email,
                 otp,
@@ -75,7 +103,7 @@ const VerifyEmail = () => {
         } finally {
             setIsVerifying(false);
         }
-    }, [email, isVerifying, router]);
+    }, [email, isVerifying, isSignInOtp, router]);
 
     const handleChange = (index: number, value: string) => {
         setErrorMessage(null);
@@ -146,7 +174,7 @@ const VerifyEmail = () => {
         try {
             const { error } = await authClient.emailOtp.sendVerificationOtp({
                 email,
-                type: "email-verification",
+                type: isSignInOtp ? "sign-in" : "email-verification",
             });
 
             if (error) {
@@ -160,7 +188,6 @@ const VerifyEmail = () => {
         }
     };
 
-
     return (
         <SafeAreaScreen edges={["top", "bottom"]}>
             <KeyboardAvoidingView
@@ -171,18 +198,24 @@ const VerifyEmail = () => {
                     <Pressable
                         accessibilityLabel="Go back to sign in"
                         className="absolute right-0 top-12 h-11 w-11 items-center justify-center"
-                        onPress={() => router.replace("/sign-in")}
+                        onPress={() => {
+                            setOtpLoginPending(false);
+                            router.replace("/sign-in");
+                        }}
                     >
                         <Feather color={mutedForeground} name="x" size={22} />
                     </Pressable>
 
                     <Text className="font-inter-bold text-[28px] leading-9 tracking-[-0.6px] text-foreground">
-                        Verify your email
+                        {isSignInOtp ? "Confirm it's you" : "Verify your email"}
                     </Text>
                     <Text className="mt-2 font-inter text-[14px] leading-5 text-muted-foreground">
                         We sent a 6-digit code to{" "}
                         <Text className="font-inter-semibold text-foreground">{email}</Text>. Enter
-                        it below to activate your account.
+                        it below{" "}
+                        {isSignInOtp
+                            ? "to securely finish signing in."
+                            : "to activate your account."}
                     </Text>
 
                     <View className="mt-10 flex-row justify-between gap-3">
