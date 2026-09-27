@@ -1,7 +1,6 @@
-import { getExerciseInstructionsQueryFn } from "@/lib/api";
+import { useExerciseInstructionsQuery } from "@/hooks/queries";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { Modal, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Skeleton from "../ui/skeleton";
@@ -21,11 +20,7 @@ type AiCoachModalProps = {
 export default function AiCoachModal({ exercise, onClose, visible }: AiCoachModalProps) {
     const foreground = useAppThemeColor("foreground");
 
-    const { data, isPending } = useQuery({
-        enabled: visible && Boolean(exercise.id),
-        queryFn: () => getExerciseInstructionsQueryFn(exercise.id),
-        queryKey: ["exercise-instructions", exercise.id],
-    });
+    const { data, isPending } = useExerciseInstructionsQuery(exercise.id);
 
     const instructions = data?.instructions ?? exercise.instructions ?? [exercise.description];
 

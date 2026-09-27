@@ -74,7 +74,24 @@ const SignUp = () => {
                 Alert.alert("Could not create account", error.message);
                 return;
             }
+            // Email verification is required: send the 6-digit OTP and route to
+            // the verification screen (no session exists until verified).
             resetOnboardingAnswers();
+            const otpResult = await authClient.emailOtp.sendVerificationOtp({
+                email,
+                type: "email-verification",
+            });
+            if (otpResult.error) {
+                Alert.alert(
+                    "Could not send verification code",
+                    otpResult.error.message || "Please try again later.",
+                );
+                return;
+            }
+            router.replace({
+                pathname: "/verify-email",
+                params: { email },
+            });
         } finally {
             setIsPending(false);
         }

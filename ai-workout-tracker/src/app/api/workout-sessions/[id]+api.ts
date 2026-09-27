@@ -1,7 +1,7 @@
 import { db, workouts, workoutSessions, workoutSessionSets, exercises as exerciseTable, } from "@/database";
 import { auth } from "@/lib/auth";
 import { and, asc, eq } from "drizzle-orm";
-import z from "zod";
+import { z } from "zod";
 
 const idSchema = z.uuid();
 
@@ -23,7 +23,6 @@ export async function GET (request: Request, { id }: Record<string, string>) {
         return Response.json(
             {
                 message: "Invalid session id",
-                error: result.error,
             },
             { status: 400 },
         );

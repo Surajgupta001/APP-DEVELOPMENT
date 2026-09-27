@@ -2,10 +2,9 @@ import AiCoachModal from "@/components/exercise/ai-coach-modal";
 import Button from "@/components/ui/button";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import Skeleton from "@/components/ui/skeleton";
-import { getExerciseQueryFn } from "@/lib/api";
+import { useExerciseQuery } from "@/hooks/queries";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View, Text, ScrollView, Image } from "react-native";
@@ -34,11 +33,7 @@ export default function SingleExercise() {
         data: exercise,
         isError,
         isPending,
-    } = useQuery({
-        enabled: Boolean(id),
-        queryFn: () => getExerciseQueryFn(id),
-        queryKey: ["exercise", id]
-    });
+    } = useExerciseQuery(id);
 
     if (!id || isError) {
         return (

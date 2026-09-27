@@ -2,7 +2,7 @@ import { db, workoutSessions } from "@/database";
 import { auth } from "@/lib/auth";
 import { differenceInCalendarDays } from "date-fns";
 import { and, eq, gte, lt } from "drizzle-orm";
-import { refine, z } from "zod";
+import { z } from "zod";
 
 const MAX_DAY_RANGE_MS = 26 * 60 * 60 * 1000;
 

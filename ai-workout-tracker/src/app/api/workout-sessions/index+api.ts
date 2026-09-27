@@ -1,7 +1,7 @@
 import { db, workoutExercises, workouts, workoutSessions, workoutSessionSets } from "@/database";
 import { auth } from "@/lib/auth";
 import { and, count, countDistinct, desc, eq } from "drizzle-orm";
-import { set, z } from "zod";
+import { z } from "zod";
 
 const setSchema = z.object({
     exerciseId: z.uuid(),
@@ -29,7 +29,20 @@ export async function GET(request: Request) {
         });
     }
 
-    const data = await db
+    const url = new URL(request.url);
+    const limitVal = url.searchParams.get("limit");
+
+    // Honor the optional limit the client sends (e.g. ?limit=1 for recent
+    // workout) while keeping the unpaginated history view unchanged.
+    const limit = limitVal
+        ? z.coerce.number().int().min(1).max(50).safeParse(limitVal)
+        : null;
+
+    if (limit && !limit.success) {
+        return Response.json({ message: "Invalid limit" }, { status: 400 });
+    }
+
+    const data = db
         .select({
             id: workoutSessions.id,
             workoutId: workoutSessions.workoutId,
@@ -44,9 +57,12 @@ export async function GET(request: Request) {
         .leftJoin(workoutSessionSets, eq(workoutSessionSets.sessionId, workoutSessions.id))
         .where(eq(workoutSessions.userId, session.user.id))
         .groupBy(workoutSessions.id, workouts.id)
-        .orderBy(desc(workoutSessions.completedAt));
+        .orderBy(desc(workoutSessions.completedAt))
+        .$dynamic();
 
-    return Response.json(data, {
+    const result = limit?.success ? await data.limit(limit.data) : await data;
+
+    return Response.json(result, {
         status: 200,
     });
 };

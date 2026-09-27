@@ -80,11 +80,11 @@ export async function POST(request: Request) {
     
     if (!result.success) {
         return Response.json(
-            { message: "Invalid data", error: result.error },
+            { message: "Invalid data" },
             { status: 400 },
         );
     }
-    
+
     const { description, exercises, image, name } = result.data;
 
     const hasDuplicateExercise = new Set(exercises.map(({ id }) => id)).size !== exercises.length;

@@ -2,11 +2,10 @@ import Button from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import Skeleton from "@/components/ui/skeleton";
-import { getHistoryDetailQueryFn } from "@/lib/api";
+import { useHistoryDetailQuery } from "@/hooks/queries";
 import { formatDuration, formatSessionDate } from "@/lib/format";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, Text } from "react-native";
 import { Pressable, ScrollView, View } from "react-native";
@@ -17,15 +16,11 @@ export default function SingleHistory() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const mutedForeground = useAppThemeColor("mutedForeground");
 
-    const { data, isError, isPending, refetch } = useQuery({
-        queryKey: ["history", id],
-        queryFn: () => getHistoryDetailQueryFn(id),
-        enabled: Boolean(id),
-    });
+    const { data, isError, isPending, refetch } = useHistoryDetailQuery(id);
 
     if (isPending) return <HistoryDetailSkeleton />;
 
-    if (!Error || !data) {
+    if (isError || !data) {
         return (
             <EmptyState
                 message="Could not load this history session"

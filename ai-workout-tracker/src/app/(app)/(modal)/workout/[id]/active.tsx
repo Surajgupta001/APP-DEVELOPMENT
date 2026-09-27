@@ -4,11 +4,13 @@ import EmptyState from "@/components/ui/empty-state";
 import SafeAreaScreen from "@/components/ui/safe-area-screen";
 import Skeleton from "@/components/ui/skeleton";
 import { useWorkoutTimer } from "@/hooks/use-workout-timer";
-import { createWorkoutSessionMutationFn, getWorkoutQueryFn, SaveSessionSet, WorkoutDetail, WorkoutExercise } from "@/lib/api";
+import { useCreateWorkoutSessionMutation } from "@/hooks/mutations";
+import { useWorkoutQuery } from "@/hooks/queries";
+import { SaveSessionSet, WorkoutDetail, WorkoutExercise } from "@/types";
 import { cn } from "@/lib/utils";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { Feather } from "@expo/vector-icons";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -39,11 +41,9 @@ export function ActiveSessionPage() {
         isError,
         isPending,
         refetch,
-    } = useQuery({
-        queryKey: ["workouts", id],
-        queryFn: () => getWorkoutQueryFn(id),
-        enabled: Boolean(id),
-    });
+    } = useWorkoutQuery(id);
+
+    const createSessionMutation = useCreateWorkoutSessionMutation();
 
     const totalSets = (workout?.exercises ?? []).reduce(
         (sum, exercise) => sum + (exercise.sets ?? 0),
@@ -72,7 +72,7 @@ export function ActiveSessionPage() {
                 }
             });
             
-            await createWorkoutSessionMutationFn({
+            await createSessionMutation.mutateAsync({
                 workoutId: workout.id,
                 startedAt: new Date(timer.startedAt).toISOString(),
                 completedAt: new Date().toISOString(),
@@ -94,7 +94,7 @@ export function ActiveSessionPage() {
         } finally {
             setIsSaving(false);
         }
-    }, [completed, queryClient, timer, workout]);
+    }, [completed, createSessionMutation, queryClient, timer, workout]);
 
     const saveSessionRef = useRef(saveSession);
 

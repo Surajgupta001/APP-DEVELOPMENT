@@ -27,7 +27,18 @@ export async function GET(request: Request, { id }: Record<string, string>) {
     };
 
     const [exercise] = await db
-        .select()
+        .select({
+            category: exercises.category,
+            description: exercises.description,
+            difficulty: exercises.difficulty,
+            equipment: exercises.equipment,
+            forceType: exercises.forceType,
+            id: exercises.id,
+            image: exercises.image,
+            mechanics: exercises.mechanics,
+            muscles: exercises.muscles,
+            name: exercises.name,
+        })
         .from(exercises)
         .where(eq(exercises.id, id))
         .limit(1)

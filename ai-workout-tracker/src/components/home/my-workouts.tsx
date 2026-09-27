@@ -1,11 +1,10 @@
 import { Feather, FontAwesome6 } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import EmptyState from "@/components/ui/empty-state";
 import Skeleton from "@/components/ui/skeleton";
-import { getWorkoutsQueryFn } from "@/lib/api";
+import { useWorkoutsQuery } from "@/hooks/queries";
 import { useAppThemeColor } from "@/theme/app-theme";
 import { cssInterop } from "nativewind";
 import HomeSectionHeader from "./home-section-header";
@@ -23,10 +22,7 @@ export default function MyWorkouts() {
         data: workouts = [],
         isError,
         isPending,
-    } = useQuery({
-        queryFn: () => getWorkoutsQueryFn(4),
-        queryKey: ["workouts", { limit: 4 }],
-    });
+    } = useWorkoutsQuery(4);
 
     return (
         <View className="mt-5">
@@ -114,61 +110,31 @@ export default function MyWorkouts() {
 
             <View className="mt-3 shadow-xs rounded-2xl">
                 <Pressable
-                    className="overflow-hidden rounded-2xl active:opacity-90"
+                    className="flex-row items-center p-5 overflow-hidden rounded-2xl active:opacity-90"
                     onPress={createWorkout}
+                    style={{
+                        experimental_backgroundImage:
+                            "linear-gradient(110deg, #0EA5E9 0%, #2563EB 55%, #1D4ED8 100%)",
+                    }}
                 >
-                    <LinearGradient
-                        className="flex-row items-center p-5"
-                        colors={["#0EA5E9", "#2563EB", "#1D4ED8"]}
-                        end={{ x: 1, y: 0.3 }}
-                        locations={[0, 0.55, 1]}
-                        start={{ x: 0, y: 0 }}
-                    >
-                        <View className="flex-1">
-                            <Text className="font-inter-bold text-[22px] text-primary-foreground">
-                                Create your own
+                    <View className="flex-1">
+                        <Text className="font-inter-bold text-[22px] text-primary-foreground">
+                            Create your own
+                        </Text>
+                        <Text className="mt-1 font-inter text-[12px] text-primary-foreground/80">
+                            Pick exercises, sets and reps
+                        </Text>
+                        <View className="self-start px-5 py-2 mt-4 bg-white rounded-full">
+                            <Text className="font-inter-semibold text-[12px] text-primary">
+                                Create
                             </Text>
-                            <Text className="mt-1 font-inter text-[12px] text-primary-foreground/80">
-                                Pick exercises, sets and reps
-                            </Text>
-                            <View className="self-start px-5 py-2 mt-4 bg-white rounded-full">
-                                <Text className="font-inter-semibold text-[12px] text-primary">
-                                    Create
-                                </Text>
-                            </View>
                         </View>
-                        <View className="items-center justify-center w-16 h-16 rounded-2xl bg-white/20">
-                            <Feather color="white" name="edit-3" size={29} />
-                        </View>
-                    </LinearGradient>
+                    </View>
+                    <View className="items-center justify-center w-16 h-16 rounded-2xl bg-white/20">
+                        <Feather color="white" name="edit-3" size={29} />
+                    </View>
                 </Pressable>
             </View>
-
-            <Pressable
-                className="flex-row items-center p-5 mt-3 overflow-hidden rounded-2xl active:opacity-90"
-                onPress={createWorkout}
-                style={{
-                    experimental_backgroundImage:
-                        "linear-gradient(110deg, #0EA5E9 0%, #2563EB 55%, #1D4ED8 100%)",
-                }}
-            >
-                <View className="flex-1">
-                    <Text className="font-inter-bold text-[22px] text-primary-foreground">
-                        Create your own
-                    </Text>
-                    <Text className="mt-1 font-inter text-[12px] text-primary-foreground/80">
-                        Pick exercises, sets and reps
-                    </Text>
-                    <View className="self-start px-5 py-2 mt-4 bg-white rounded-full">
-                        <Text className="font-inter-semibold text-[12px] text-primary">
-                            Create
-                        </Text>
-                    </View>
-                </View>
-                <View className="items-center justify-center w-16 h-16 rounded-2xl bg-white/20">
-                    <Feather color="white" name="edit-3" size={29} />
-                </View>
-            </Pressable>
         </View>
     );
 }
