@@ -1,7 +1,4 @@
-import {
-    OnboardingValues,
-    onboardingValuesSchema,
-} from "@/lib/validations/onboarding-validation";
+import { OnboardingValues, onboardingValuesSchema } from "@/lib/validations/onboarding-validation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
@@ -13,6 +10,7 @@ export const steps = [
     { field: "goal", key: "goal" },
     { field: "experience", key: "experience" },
 ] as const;
+
 const isClient = Platform.OS !== "web" || typeof window !== "undefined";
 
 if (isClient) {
@@ -26,10 +24,9 @@ export const saveOnboardingAnswer = (
     value: any,
 ) => {
     answers[field] = value;
-    if (isClient)
-        AsyncStorage.setItem(ONBOARDING_KEYS, JSON.stringify(answers)).catch(
-            () => { },
-        );
+    if (isClient) {
+        AsyncStorage.setItem(ONBOARDING_KEYS, JSON.stringify(answers)).catch(() => {});
+    }
 };
 
 export const isOnboardingCompleted = (): boolean => {
