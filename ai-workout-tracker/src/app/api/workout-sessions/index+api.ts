@@ -1,7 +1,7 @@
 import { db, workoutExercises, workouts, workoutSessions, workoutSessionSets } from "@/database";
 import { auth } from "@/lib/auth";
-import { and, eq } from "drizzle-orm";
-import { z } from "zod";
+import { and, count, countDistinct, desc, eq } from "drizzle-orm";
+import { set, z } from "zod";
 
 const setSchema = z.object({
     exerciseId: z.uuid(),
@@ -17,6 +17,39 @@ const sessionSchema = z.object({
     durationSeconds: z.number().int().min(0),
     sets: z.array(setSchema).max(100),
 });
+
+export async function GET(request: Request) {
+    const session = await auth.api.getSession({
+        headers: request.headers,
+    });
+
+    if (!session) {
+        return new Response("Unauthorized", {
+            status: 401,
+        });
+    }
+
+    const data = await db
+        .select({
+            id: workoutSessions.id,
+            workoutId: workoutSessions.workoutId,
+            completedAt: workoutSessions.completedAt,
+            durationSeconds: workoutSessions.durationSeconds,
+            exerciseCount: countDistinct(workoutSessionSets.exerciseId),
+            setCount: count(workoutSessionSets.id),
+            workoutname: workouts.name,
+            image: workouts.image,
+        }).from(workoutSessions)
+        .innerJoin(workouts, eq(workouts.id, workoutSessions.workoutId))
+        .leftJoin(workoutSessionSets, eq(workoutSessionSets.sessionId, workoutSessions.id))
+        .where(eq(workoutSessions.userId, session.user.id))
+        .groupBy(workoutSessions.id, workouts.id)
+        .orderBy(desc(workoutSessions.completedAt));
+
+    return Response.json(data, {
+        status: 200,
+    });
+};
 
 export async function POST(request: Request) {
     const session = await auth.api.getSession({
