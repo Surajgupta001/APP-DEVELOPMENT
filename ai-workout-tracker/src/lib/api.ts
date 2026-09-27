@@ -1,4 +1,14 @@
+import { addDays, startOfDay } from "date-fns";
 import { API_URL, authClient } from "./auth-client";
+
+export type WorkoutListItem = {
+    exerciseCount: number;
+    id: string;
+    image: string | null;
+    muscles: string;
+    name: string;
+    totalSets: number;
+};
 
 export type CreateWorkoutInput = {
     name: string;
@@ -25,38 +35,90 @@ export type ExerciseItem = {
     name: string;
 };
 
-export type workoutListItem = {
-    exerciseCount: number;
+export type WorkoutExercise = {
     id: string;
     image: string | null;
     muscles: string;
     name: string;
-    totalSets: number;
-};
-
-export type workoutExercise = {
-    id: string;
-    image: string | null;
-    muscles: string;
-    name: string;
-    targetWeight: number | null;
+    targetWeight?: number | null;
     reps?: number;
     rest?: number;
     sets?: number;
-}
+};
 
-export type workoutDetail = {
+export type WorkoutDetail = {
     description: string | null;
-    exercises: workoutExercise[];
+    exercises: WorkoutExercise[];
     id: string;
     image: string | null;
-    name: string;
     muscles: string;
+    name: string;
+};
+
+export type SaveSessionSet = {
+    exerciseId: string;
+    reps: number;
+    setNumber: number;
+    weight?: number;
+};
+
+export type SaveSessionInput = {
+    completedAt: string;
+    durationSeconds: number;
+    sets: SaveSessionSet[];
+    startedAt: string;
+    workoutId: string;
+};
+
+export type HistorySessionItem = {
+    id: string;
+    workoutId: string;
+    workoutName: string;
+    image: string | null;
+    completedAt: string;
+    durationSeconds: number;
+    exerciseCount: number;
+    setCount: number;
+};
+
+export type HistorySet = {
+    reps: number;
+    weight: number | null;
+};
+
+export type HistoryExercise = {
+    id: string;
+    name: string;
+    image: string | null;
+    sets: HistorySet[];
+};
+
+export type HistoryDetail = {
+    id: string;
+    image: string | null;
+    workoutId: string;
+    workoutName: string;
+    completedAt: string;
+    durationSeconds: number;
+    exercises: HistoryExercise[];
+    setCount: number;
+    volume: number | null;
+};
+
+export type HomeStats = {
+    avgTimeSeconds: number;
+    totalTimeSeconds: number;
+    workouts: number;
+};
+
+export type WorkoutCalendarDates = {
+    workoutDates: string[];
 };
 
 export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
     const { data: result, error } = await authClient.$fetch(
-        `${API_URL}/api/workouts`, {
+        `${API_URL}/api/workouts`,
+        {
             method: "POST",
             body: JSON.stringify(data),
             headers: {
@@ -64,68 +126,154 @@ export async function createWorkoutMutationFn(data: CreateWorkoutInput) {
             },
         },
     );
-
     if (error) throw new Error("Could not create workout");
 
     return result;
-};
+}
+
+export async function getWorkoutsQueryFn(limit?: number) {
+    const { data, error } = await authClient.$fetch<WorkoutListItem[]>(
+        `${API_URL}/api/workouts${limit ? `?limit=${limit}` : ""}`,
+        {
+            method: "GET",
+        },
+    );
+    if (error) throw new Error("Could not create workout");
+
+    return data;
+}
+
+export async function getWorkoutQueryFn(id: string) {
+    const { data, error } = await authClient.$fetch<WorkoutDetail>(
+        `${API_URL}/api/workouts/${id}`,
+        {
+            method: "GET",
+        },
+    );
+    if (error) throw new Error("Could not create workout");
+
+    return data;
+}
 
 export async function getExercisesQueryFn(search?: string) {
     const query = search ? `?search=${encodeURIComponent(search)}` : "";
     const { data, error } = await authClient.$fetch<ExerciseItem[]>(
-        `${API_URL}/api/exercises${query}`, {
+        `${API_URL}/api/exercises${query}`,
+        {
             method: "GET",
         },
     );
-
-    if (error) throw new Error("Could not fetch exercises");
+    if (error) throw new Error("Could not create workout");
 
     return data;
-};
+}
 
 export async function getExerciseQueryFn(id: string) {
     const { data, error } = await authClient.$fetch<ExerciseItem>(
-        `${API_URL}/api/exercises/${id}`, {
+        `${API_URL}/api/exercises/${id}`,
+        {
             method: "GET",
         },
     );
-
-    if (error) throw new Error("Could not fetch exercise");
+    if (error) throw new Error("Could not create workout");
 
     return data;
-};
+}
 
 export async function getExerciseInstructionsQueryFn(id: string) {
-    const { data, error } = await authClient.$fetch<{ instructions: string[] }>(
-        `${API_URL}/api/exercises/${id}/instructions`, {
-            method: "GET",
-        },
-    );
-
-    if (error) throw new Error("Could not fetch exercise instructions");
-
-    return data;
-};
-
-export async function getWorkoutsQueryFn(limit?: number) {
-    const { data, error } = await authClient.$fetch<workoutListItem[]>(
-        `${API_URL}/api/workouts${limit ? `?limit=${limit}` : ""}`, {
+    const { data, error } = await authClient.$fetch<{
+        instructions: string[];
+    }>(`${API_URL}/api/exercises/${id}/instructions`, {
         method: "GET",
     });
-
-    if (error) throw new Error("Could not fetch workouts");
+    if (error) throw new Error("Could not create workout");
 
     return data;
-};
+}
 
-export async function getWorkoutQueryFn(id: string) {
-    const { data, error } = await authClient.$fetch<workoutDetail>(
-        `${API_URL}/api/workouts/${id}`, {
+export async function createWorkoutSessionMutationFn(data: SaveSessionInput) {
+    const { data: result, error } = await authClient.$fetch(
+        `${API_URL}/api/workout-sessions`,
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        },
+    );
+    if (error) throw new Error("Could not create workout");
+
+    return result;
+}
+
+export async function getHistoryQueryFn(limit?: number) {
+    const query = limit === undefined ? "" : `?limit=${limit}`;
+    const { data, error } = await authClient.$fetch<HistorySessionItem[]>(
+        `${API_URL}/api/workout-sessions${query}`,
+        {
             method: "GET",
         },
     );
-
-    if (error) throw new Error("Could not fetch workout");
+    if (error) throw new Error("Could not create workout");
 
     return data;
-};
+}
+
+export async function getHistoryDetailQueryFn(id: string) {
+    const { data, error } = await authClient.$fetch<HistoryDetail>(
+        `${API_URL}/api/workout-sessions/${id}`,
+        {
+            method: "GET",
+        },
+    );
+    if (error) throw new Error("Could not create workout");
+
+    return data;
+}
+
+export async function getHomeStatsQueryFn(date: Date) {
+    const start = startOfDay(date);
+    const end = addDays(start, 1); // beginning of the following day
+    const query = new URLSearchParams({
+        end: end.toISOString(),
+        start: start.toISOString(),
+    });
+
+    const { data, error } = await authClient.$fetch<HomeStats>(
+        `${API_URL}/api/home-stats?${query}`,
+        {
+            method: "GET",
+        },
+    );
+    if (error) throw new Error("Could not load home stats");
+
+    return data;
+}
+
+export async function getWorkoutCalendarDatesQueryFn(start: Date, end: Date) {
+    const query = new URLSearchParams({
+        end: end.toISOString(),
+        start: start.toISOString(),
+    });
+
+    const { data, error } = await authClient.$fetch<WorkoutCalendarDates>(
+        `${API_URL}/api/workout-sessions/calendar?${query}`,
+        {
+            method: "GET",
+        },
+    );
+    if (error) throw new Error("Could not load workout dates");
+
+    return data;
+}
+
+export async function getStreakQueryFn() {
+    const { data, error } = await authClient.$fetch<WorkoutCalendarDates>(
+        `${API_URL}/api/workout-sessions/streak`,
+        { method: "GET" },
+    );
+    if (error) throw new Error("Could not load streak");
+
+    return data;
+}
