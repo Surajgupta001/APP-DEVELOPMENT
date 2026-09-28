@@ -8,9 +8,11 @@
     "scheme": "aiworkouttracker",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.surajgupta001.aiworkouttracker",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.surajgupta001.aiworkouttracker",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
